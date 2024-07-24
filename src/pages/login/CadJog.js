@@ -1,26 +1,38 @@
 import logo from '../../images/logo_la.png';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function CadJog() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
   const [telefone, setTelefone] = useState('');
+  const navigate = useNavigate();
 
   const handleCadastro = async () => {
-    const response = await fetch('http://localhost:5000/cadastro', {
+    try {
+      const response = await fetch('http://localhost:5000/cadastro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ username, email, cpf, telefone })
       });
-      
-    const data = await response.json();
-    
-    if (data.success) {
-      alert('Cadastro realizado com sucesso!');
-    } else {
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Cadastro realizado com sucesso!');
+        navigate("/loginjog");
+      } else {
+        alert('Erro ao realizar o cadastro.');
+      }
+    } catch (error) {
+      console.error('Erro na solicitação:', error);
       alert('Erro ao realizar o cadastro.');
     }
   };
@@ -58,7 +70,7 @@ function CadJog() {
           id="telefone" 
           type='text' 
           className='border border-white p-1 rounded-sm text-center mt-2 w-[250px]' 
-          placeholder='Digite sua Telefone' 
+          placeholder='Digite seu Telefone' 
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
         />

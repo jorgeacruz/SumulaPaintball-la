@@ -3,6 +3,8 @@ import logo from '../src/images/logo_la.png';
 import { useState } from "react";  
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import CadJog from './pages/login/CadJog';
+import Loginjog from './pages/Loginjog';
+
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -67,6 +69,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/cadjog" element={<CadJog />} />
+        <Route path="/loginjog" element={<Loginjog />} />
       </Routes>
     </Router>
   );
