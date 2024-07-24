@@ -78,7 +78,7 @@ function CadJog() {
           id="bt-log" 
           className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]' 
           onClick={handleCadastro}>Fazer Cadastro</button>
-        <p className='text-white text-sm'>Já possuo cadastro! <span><a href='../../src/pages/login/'>Clique aqui</a></span></p>
+        <p className='text-white text-sm'>Já possuo cadastro! <span><a href='./loginjog/'>Clique aqui</a></span></p>
       </div>
     </div>
   );
