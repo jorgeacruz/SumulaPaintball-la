@@ -8,6 +8,7 @@ import NavBar from './pages/Componentes/Navbar';
 import ForgotPassword from './pages/MudaSenhaJog';
 import Changepass from './pages/MudaSenhaAdm';
 import Estoque from './pages/Estoque';
+import AddJogo from './pages/AddJogo';
 
 
 function Login() {
@@ -34,6 +35,8 @@ function Login() {
   };
 
   return (
+    <div>
+      <NavBar/>
     <div className='w-full h-screen flex flex-col items-center justify-center bg-black'>
       <div className='flex flex-col justify-center items-center '>
         <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA'/>
@@ -64,6 +67,7 @@ function Login() {
         <p className='text-primary mt-10'><a href='/mudarsenhaadm'>Esqueci minha senha</a></p>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -78,6 +82,7 @@ function App() {
         <Route path="/mudarsenhajog" element={<ForgotPassword />} />
         <Route path="/mudarsenhaadm" element={<Changepass />} />
         <Route path="/estoque" element={<Estoque />} />
+        <Route path="/addjogo" element={<AddJogo />} />
       </Routes>
     </Router>
   );

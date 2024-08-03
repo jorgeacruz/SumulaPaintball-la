@@ -1,6 +1,6 @@
-import logo from '../../images/logo_la.png';
+import logo from '../images/logo_la.png';
 import React, { useState } from 'react';
-import NavBar from './Componentes/NavBar';
+import NavBar from './Componentes/Navbar';
 
 function AddJogo() {
   const [data, setData] = useState('');

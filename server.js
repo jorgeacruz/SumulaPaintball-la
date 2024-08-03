@@ -215,7 +215,42 @@ app.delete('/estoque/:nome', (req, res) => {
     res.json(results);
   });
 });
+app.put('/estoque/:nome', (req, res) => {
+  const nome = req.params.nome;
+  const { quantidade, valor } = req.body;
 
+  if (quantidade === undefined && valor === undefined) {
+    return res.status(400).send("Nenhum valor para atualizar fornecido");
+  }
+
+  let query = 'UPDATE estoque SET ';
+  const values = [];
+  
+  if (quantidade !== undefined) {
+    query += 'quantidade = ? ';
+    values.push(quantidade);
+  }
+  
+  if (valor !== undefined) {
+    if (values.length > 0) {
+      query += ', ';
+    }
+    query += 'valor = ? ';
+    values.push(valor);
+  }
+
+  query += 'WHERE nome = ?';
+  values.push(nome);
+
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.error('Erro ao atualizar estoque:', err);
+      return res.status(500).send('Erro ao atualizar estoque');
+    }
+
+    res.send({ success: true, message: 'Estoque atualizado com sucesso' });
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

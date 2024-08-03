@@ -1,6 +1,7 @@
 import logo from '../images/logo_la.png';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import NavBar from './Componentes/Navbar';
 
 function Changepass(){
   const [username, setUsername] = useState('');
@@ -71,6 +72,8 @@ function Changepass(){
   };
 
   return (
+    <div>
+    <NavBar/>
     <div className='w-full h-screen bg-black flex items-center justify-center'>
       <div className='flex flex-col justify-center items-center'>
         <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA'/>
@@ -124,6 +127,7 @@ function Changepass(){
           </>
         )}
       </div>
+    </div>
     </div>
   );
 }

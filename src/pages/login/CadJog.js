@@ -1,6 +1,7 @@
 import logo from '../../images/logo_la.png';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import NavBar from '../Componentes/Navbar';
 
 function CadJog() {
   const [username, setUsername] = useState('');
@@ -39,7 +40,9 @@ function CadJog() {
   };
 
   return (
-    <div className='w-full h-screen bg-black flex items-center justify-center'>
+    <div>
+      <NavBar/>
+    <div className='w-full h-screen bg-black flex items-center justify-center'>     
       <div className='flex flex-col justify-center items-center'>
         <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA'/>
         <h1 className='text-white font-bold text-3xl m-3'>Jogador! Faça seu cadastro.</h1>
@@ -89,6 +92,7 @@ function CadJog() {
           onClick={handleCadastro}>Fazer Cadastro</button>
         <p className='text-primary mt-10'><span className='text-white'>Já possuo cadastro!</span> <a href='./loginjog/'>Clique aqui</a></p>
       </div>
+    </div>
     </div>
   );
 }

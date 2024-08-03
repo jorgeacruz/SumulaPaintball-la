@@ -4,6 +4,7 @@ import NavBar from '../pages/Componentes/Navbar';
 
 export default function Estoque() {
   const [estoque, setEstoque] = useState([]);
+  const [inputs, setInputs] = useState({});
 
   const fetchEstoque = () => {
     axios.get('http://localhost:5000/estoque')
@@ -27,6 +28,10 @@ export default function Estoque() {
     axios.post('http://localhost:5000/estoque', { item: nomeProduto, valor: valorProduto, quantidade: qtdProduto })
       .then(response => {
         fetchEstoque();
+        // Limpar os campos após adicionar
+        document.getElementById('NomeProduto').value = '';
+        document.getElementById('valorProduto').value = '';
+        document.getElementById('QtdProduto').value = '';
       })
       .catch(error => {
         console.error('Erro ao adicionar item ao estoque:', error);
@@ -39,14 +44,53 @@ export default function Estoque() {
     axios.delete(`http://localhost:5000/estoque/${nomeProduto}`)
       .then(response => {
         fetchEstoque();
+        // Limpar o campo após remover
+        document.getElementById('NomeProduto').value = '';
       })
       .catch(error => {
         console.error('Erro ao remover item do estoque:', error);
       });
   };
 
+  const updateQuantidade = (nome, novaQuantidade) => {
+    axios.put(`http://localhost:5000/estoque/${nome}`, { quantidade: novaQuantidade })
+      .then(response => {
+        fetchEstoque();
+        // Limpar o campo de quantidade após atualizar
+        setInputs(prev => ({ ...prev, [nome]: { ...prev[nome], quantidade: '' } }));
+      })
+      .catch(error => {
+        console.error('Erro ao atualizar quantidade do item:', error);
+      });
+  };
+
+  const updateValor = (nome, novoValor) => {
+    axios.put(`http://localhost:5000/estoque/${nome}`, { valor: novoValor })
+      .then(response => {
+        fetchEstoque();
+        // Limpar o campo de valor após atualizar
+        setInputs(prev => ({ ...prev, [nome]: { ...prev[nome], valor: '' } }));
+      })
+      .catch(error => {
+        console.error('Erro ao atualizar valor do item:', error);
+      });
+  };
+
+  const handleInputChange = (nome, tipo, valor) => {
+    setInputs(prev => ({
+      ...prev,
+      [nome]: {
+        ...prev[nome],
+        [tipo]: valor
+      }
+    }));
+  };
+
+  const totalQuantidade = estoque.reduce((total, item) => total + item.quantidade, 0);
+  const totalValor = estoque.reduce((total, item) => total + item.valor * item.quantidade, 0);
+
   return (
-    <div>
+    <div className="bg-black min-h-screen">
       <NavBar />
       <section className="w-full flex flex-col items-center justify-start p-5">
         <h1 className="text-white font-bold text-2xl mt-5">Adicione seus itens ao Estoque</h1>
@@ -82,12 +126,46 @@ export default function Estoque() {
                 </div>
                 <div className="w-full md:w-1/3 text-center">
                   <p className="text-black font-semibold">{item.quantidade}</p>
+                  <input
+                    type="number"
+                    value={inputs[item.nome]?.quantidade || ''}
+                    onChange={(e) => handleInputChange(item.nome, 'quantidade', e.target.value)}
+                    className="w-full md:w-1/2 p-1 m-1 rounded-md text-center lg:w-28"
+                    placeholder="Nova qtd"
+                    onBlur={() => {
+                      if (inputs[item.nome]?.quantidade) {
+                        updateQuantidade(item.nome, inputs[item.nome].quantidade);
+                      }
+                    }}
+                  />
                 </div>
                 <div className="w-full md:w-1/3 text-center">
                   <p className="text-black font-semibold">{item.valor}</p>
+                  <input
+                    type="number"
+                    value={inputs[item.nome]?.valor || ''}
+                    onChange={(e) => handleInputChange(item.nome, 'valor', e.target.value)}
+                    className="w-full md:w-1/2 p-1 m-1 rounded-md text-center lg:w-28"
+                    placeholder="Novo valor"
+                    onBlur={() => {
+                      if (inputs[item.nome]?.valor) {
+                        updateValor(item.nome, inputs[item.nome].valor);
+                      }
+                    }}
+                  />
                 </div>
               </div>
             ))}
+            <div className="w-full flex flex-col md:flex-row md:justify-between px-3 py-2">
+              <div className="w-full md:w-1/3 text-center">
+                <p className="text-black text-lg font-semibold">Qtd Total de itens:</p>
+                <p className="text-red-500 text-lg font-bold">{totalQuantidade}</p>
+              </div>
+              <div className="w-full md:w-1/3 text-center">
+                <p className="text-black text-lg font-semibold">Valor Total:</p>
+                <p className="text-red-500 text-lg font-bold">R${totalValor}</p>
+              </div>
+            </div>
           </div>
         </div>
         <div className="w-full h-24 bg-third rounded-md flex justify-center md:justify-end items-center gap-3 px-2">
