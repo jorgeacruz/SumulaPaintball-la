@@ -169,7 +169,7 @@ export default function Estoque() {
           </div>
         </div>
         <div className="w-full h-24 bg-third rounded-md flex justify-center md:justify-end items-center gap-3 px-2">
-          <button className="bg-black text-white p-2 rounded-sm">
+          <button className="bg-yellow-500 text-white p-2 rounded-sm">
             Imprimir ESTOQUE ATUAL
           </button>
           <button className="bg-red-500 text-white p-2 rounded-sm">
