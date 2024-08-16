@@ -10,6 +10,7 @@ import Changepass from './pages/MudaSenhaAdm';
 import Estoque from './pages/Estoque';
 import AddJogo from './pages/AddJogo';
 import CardJogador from './pages/Componentes/Cardjog';
+import CardVendaAvulsa from './pages/Componentes/VendaAvul';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -84,6 +85,7 @@ function App() {
         <Route path="/estoque" element={<Estoque />} />
         <Route path="/addjogo" element={<AddJogo />} />
         <Route path="/cardjogador" element={<CardJogador />} />
+        <Route path="/vendaavulsa" element={<CardVendaAvulsa />} />
       </Routes>
     </Router>
   );

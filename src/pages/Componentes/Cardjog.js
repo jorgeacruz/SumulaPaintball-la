@@ -79,15 +79,31 @@ export default function CardJogador() {
     setJogadores(updatedJogadores);
   
     const itemsToUpdate = jogadores[index].items;
+    
+    let podeFechar = true;
   
     itemsToUpdate.forEach(item => {
-      axios.put(`http://localhost:5000/estoque/${item.id}`, { quantidade: item.quantidade - 1 })
-        .then(response => console.log(`Estoque atualizado para o item ${item.nome}`))
-        .catch(error => console.error('Erro ao atualizar estoque:', error));
+      if (item.quantidade <= 0) {
+        console.warn(`Quantidade insuficiente no estoque para o item ${item.nome}`);
+        podeFechar = false;
+      }
     });
   
-    updateValorTotal(updatedJogadores);
+    if (podeFechar) {
+      itemsToUpdate.forEach(item => {
+        const novaQuantidade = item.quantidade - 1;
+  
+        axios.put(`http://localhost:5000/estoque/${item.nome}`, { quantidade: novaQuantidade })
+          .then(response => console.log(`Estoque atualizado para o item ${item.nome} para ${novaQuantidade} unidades`))
+          .catch(error => console.error('Erro ao atualizar estoque:', error));
+      });
+  
+      updateValorTotal(updatedJogadores);
+    } else {
+      console.error('Não foi possível fechar o pedido devido à quantidade insuficiente no estoque.');
+    }
   };
+  
 
   return (
     <div>

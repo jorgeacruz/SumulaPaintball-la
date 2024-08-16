@@ -264,24 +264,7 @@ app.post('/jogo', (req, res) => {
   });
 });
 
-app.put('/estoque/:id', (req, res) => {
-  const itemId = req.params.id;
-  const { quantidade } = req.body;
 
-  if (quantidade === undefined) {
-    return res.status(400).send('Quantidade é obrigatória');
-  }
-
-  const query = 'UPDATE estoque SET quantidade = ? WHERE id = ?';
-  db.query(query, [quantidade, itemId], (err, results) => {
-    if (err) {
-      console.error('Erro ao atualizar estoque:', err);
-      res.status(500).send('Erro ao atualizar estoque');
-      return;
-    }
-    res.send('Estoque atualizado com sucesso');
-  });
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
