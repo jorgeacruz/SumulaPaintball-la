@@ -36,8 +36,6 @@ function Login() {
   };
 
   return (
-    <div>
-      <NavBar/>
     <div className='w-full h-screen flex flex-col items-center justify-center bg-black'>
       <div className='flex flex-col justify-center items-center '>
         <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA'/>
@@ -67,7 +65,6 @@ function Login() {
         </button>
         <p className='text-primary mt-10'><a href='/mudarsenhaadm'>Esqueci minha senha</a></p>
       </div>
-    </div>
     </div>
   );
 }

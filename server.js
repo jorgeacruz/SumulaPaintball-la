@@ -263,7 +263,23 @@ app.post('/jogo', (req, res) => {
     res.status(201).send('Jogador adicionado com sucesso');
   });
 });
+app.get('/estoque/:nome', (req, res) => {
+  const nomeItem = req.params.nome;
+  const query = 'SELECT * FROM estoque WHERE nome = ?';
 
+  db.query(query, [nomeItem], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar item no estoque:', err);
+      return res.status(500).send({ error: 'Erro interno do servidor' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send({ error: 'Item não encontrado' });
+    }
+
+    res.send(results[0]);
+  });
+});
 
 
 const PORT = process.env.PORT || 5000;
