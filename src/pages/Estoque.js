@@ -115,16 +115,17 @@ export default function Estoque() {
           <h2 className="text-black font-bold mb-5">Estoque Atual</h2>
           <div className="w-full flex flex-col">
             <div className="w-full flex justify-between px-3">
-              <p className="text-black font-semibold w-1/3 text-center">Item</p>
-              <p className="text-black font-semibold w-1/3 text-center">Quantidade</p>
-              <p className="text-black font-semibold w-1/3 text-center">Valor</p>
+              <p className="text-black font-semibold w-1/4 text-center">Item</p>
+              <p className="text-black font-semibold w-1/4 text-center">Quantidade</p>
+              <p className="text-black font-semibold w-1/4 text-center">Valor Unidade</p>
+              <p className="text-black font-semibold w-1/4 text-center">Valor Total</p>
             </div>
             {estoque.map((item, index) => (
               <div key={index} className="w-full flex justify-between items-center px-3 py-2 border-t border-gray-300">
-                <div className="w-1/3 text-center">
+                <div className="w-1/4 text-center">
                   <p className="text-black font-semibold">{item.nome}</p>
                 </div>
-                <div className="w-1/3 text-center">
+                <div className="w-1/4 text-center">
                   <div className="flex items-center justify-center">
                     <p className="text-black font-semibold">{item.quantidade}</p>
                     {editMode[item.nome] && (
@@ -137,14 +138,14 @@ export default function Estoque() {
                         onBlur={() => {
                           if (inputs[item.nome]?.quantidade) {
                             updateQuantidade(item.nome, inputs[item.nome].quantidade);
-                            toggleEditMode(item.nome); // Oculta o campo após a atualização
+                            toggleEditMode(item.nome);
                           }
                         }}
                       />
                     )}
                   </div>
                 </div>
-                <div className="w-1/3 text-center">
+                <div className="w-1/4 text-center">
                   <div className="flex items-center justify-between">
                     <p className="text-black font-semibold w-full">{item.valor}</p>
                     {editMode[item.nome] && (
@@ -170,6 +171,9 @@ export default function Estoque() {
                     </button>
                   </div>
                 </div>
+                <div className="w-1/4 text-center">
+                  <p className="text-black font-semibold">R${(item.valor * item.quantidade).toFixed(2)}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -180,7 +184,7 @@ export default function Estoque() {
             </div>
             <div className="w-1/3 text-center">
               <p className="text-black text-lg font-semibold">Valor Total:</p>
-              <p className="text-red-500 text-lg font-bold">R${totalValor}</p>
+              <p className="text-red-500 text-lg font-bold">R${totalValor.toFixed(2)}</p>
             </div>
           </div>
         </div>
