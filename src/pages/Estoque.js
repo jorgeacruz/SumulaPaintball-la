@@ -90,6 +90,33 @@ export default function Estoque() {
   const totalQuantidade = estoque.reduce((total, item) => total + item.quantidade, 0);
   const totalValor = estoque.reduce((total, item) => total + item.valor * item.quantidade, 0);
 
+  
+  const formatEstoqueToText = () => {
+    return estoque.map(item => 
+      `Produto: ${item.nome}, Quantidade: ${item.quantidade}, Valor: R$${item.valor}, Valor Total: R$${(item.valor * item.quantidade).toFixed(2)}`
+    ).join('\n');
+  };
+
+  
+  const saveEstoqueToFile = () => {
+    const estoqueText = formatEstoqueToText();
+    const blob = new Blob([estoqueText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'estoque.txt';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const printEstoque = () => {
+    const estoqueText = formatEstoqueToText();
+    const printWindow = window.open('', '', 'width=600,height=400');
+    printWindow.document.write('<pre>' + estoqueText + '</pre>');
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   return (
     <div className="bg-black min-h-screen flex flex-col items-center justify-center">
       <NavBar />
@@ -190,11 +217,17 @@ export default function Estoque() {
         </div>
 
         <div className="w-full h-24 bg-third rounded-md flex justify-center md:justify-end items-center gap-3 px-2 mt-5">
-          <button className="bg-yellow-500 text-white p-2 rounded-sm">
+          <button 
+            className="bg-yellow-500 text-white p-2 rounded-sm"
+            onClick={printEstoque}
+          >
             Imprimir ESTOQUE ATUAL
           </button>
-          <button className="bg-red-500 text-white p-2 rounded-sm">
-            Imprimir ESTOQUE TOTAL
+          <button 
+            className="bg-red-500 text-white p-2 rounded-sm"
+            onClick={saveEstoqueToFile}
+          >
+            Salvar ESTOQUE EM ARQUIVO
           </button>
         </div>
       </section>
