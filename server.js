@@ -280,7 +280,33 @@ app.get('/estoque/:nome', (req, res) => {
     res.send(results[0]);
   });
 });
+app.post('/pedidos', (req, res) => {
+  const { nomeJogador, items, formaPagamento } = req.body;
 
+  // Primeiro, insere o pedido na tabela `pedidos`
+  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento) VALUES (?, ?)';
+  db.query(queryPedido, [nomeJogador, formaPagamento], (err, result) => {
+    if (err) {
+      console.error('Erro ao cadastrar pedido:', err);
+      res.status(500).send('Erro no servidor');
+    } else {
+      const pedidoId = result.insertId;
+
+      // Agora, insere os itens do pedido na tabela `itens_pedidos`
+      const queryItens = 'INSERT INTO itens_pedidos (pedido_id, nome_item, quantidade, valor) VALUES ?';
+      const values = items.map(item => [pedidoId, item.nome, 1, item.valor]); // 1 como quantidade
+
+      db.query(queryItens, [values], (err, result) => {
+        if (err) {
+          console.error('Erro ao cadastrar itens do pedido:', err);
+          res.status(500).send('Erro no servidor');
+        } else {
+          res.send('Pedido cadastrado com sucesso');
+        }
+      });
+    }
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
