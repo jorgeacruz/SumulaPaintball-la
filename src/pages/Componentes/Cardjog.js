@@ -4,9 +4,9 @@ import axios from 'axios';
 export default function CardJogador() {
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
   const [estoque, setEstoque] = useState([]);
-  const [selectedPayment, setSelectedPayment] = useState(''); // Estado para forma de pagamento
-  const [showPaymentModal, setShowPaymentModal] = useState(false); // Controle do modal
-  const [jogadorIndexForPayment, setJogadorIndexForPayment] = useState(null); // Para saber qual jogador está fechando o pedido
+  const [selectedPayment, setSelectedPayment] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [jogadorIndexForPayment, setJogadorIndexForPayment] = useState(null);
 
   useEffect(() => {
     axios.get('http://localhost:5000/estoque')
@@ -49,7 +49,7 @@ export default function CardJogador() {
       const selectedItem = { ...updatedJogadores[index].selectedItem };
       selectedItem.valor = parseFloat(selectedItem.valor) || 0;
       updatedJogadores[index].items.push(selectedItem);
-      updatedJogadores[index].selectedItem = ''; // Limpa a seleção após adicionar
+      updatedJogadores[index].selectedItem = '';
       setJogadores(updatedJogadores);
     }
   };
@@ -61,8 +61,15 @@ export default function CardJogador() {
   };
 
   const handleClosePedido = (index) => {
-    setJogadorIndexForPayment(index); // Define o jogador atual para pagamento
-    setShowPaymentModal(true); // Abre o modal de pagamento
+    if (jogadores[index].isClosed) {
+      const updatedJogadores = [...jogadores];
+      updatedJogadores[index].isClosed = false;
+      updatedJogadores[index].items = [];
+      setJogadores(updatedJogadores);
+    } else {
+      setJogadorIndexForPayment(index);
+      setShowPaymentModal(true);
+    }
   };
 
   const handlePaymentSelection = (paymentMethod) => {
@@ -110,7 +117,10 @@ export default function CardJogador() {
         .then(() => console.log('Pedido e pagamento cadastrados com sucesso!'))
         .catch(error => console.error('Erro ao cadastrar pedido:', error));
 
-        setShowPaymentModal(false); // Fecha o modal após confirmar
+        const updatedJogadores = [...jogadores];
+        updatedJogadores[jogadorIndexForPayment].isClosed = true;
+        setJogadores(updatedJogadores);
+        setShowPaymentModal(false);
       }
     });
   };
@@ -120,7 +130,7 @@ export default function CardJogador() {
       {jogadores.map((jogador, index) => {
         const valorTotalJogador = jogador.items.reduce((sum, item) => sum + item.valor, 0);
         return (
-          <section key={index} id='jogador' className={`w-[300px] h-auto rounded-lg bg-white ${jogador.isClosed ? 'opacity-50 pointer-events-none' : ''}`}>
+          <section key={index} className={`w-[300px] h-auto rounded-lg bg-white ${jogador.isClosed ? 'opacity-50 pointer-events-none' : ''}`}>
             <header className="bg-primary w-full p-3 rounded-t-lg gap-2 flex flex-col justify-center items-center text-black font-normal md:flex-col md:justify-between">
               <p className="text-black">Jogador</p>
               <div className="flex flex-col justify-center items-center gap-2 md:flex-row md:justify-between">
@@ -157,7 +167,7 @@ export default function CardJogador() {
               </div>
             </header>
 
-            <div className="w-full h-auto p-2" id="itemsObrigatorio">
+            <div className="w-full h-auto p-1" id="itemsObrigatorio">
               <div className="p-2 flex flex-col justify-center items-center gap-2 md:flex-row md:justify-between">
                 <select
                   className="w-full border border-slate-400 rounded px-2 p-1 text-center"
@@ -184,10 +194,7 @@ export default function CardJogador() {
               </div>
 
               {jogador.items.map((item, itemIndex) => (
-                <div
-                  key={itemIndex}
-                  className="p-2 flex flex-col justify-center items-center md:flex-row md:justify-between"
-                >
+                <div key={itemIndex} className="p-2 flex flex-col justify-center items-center md:flex-row md:justify-between">
                   <div className="inline-flex">
                     <button
                       className="bg-black hover:bg-red-500 py-1 px-2 rounded text-white"
@@ -204,45 +211,49 @@ export default function CardJogador() {
             </div>
 
             <div className="inline-flex gap-4 justify-around w-full items-center mt-4">
-              <h1 className="text-md font-semibold">
-                Total: R${valorTotalJogador.toFixed(2)}
-              </h1>
+              <h1 className="text-md font-semibold">Total: R${valorTotalJogador.toFixed(2)}</h1>
             </div>
 
             <div className="flex justify-center items-center mt-2">
               <button
-                className="bg-green-600 text-white py-2 px-4 rounded-lg"
+                className="w-[180px] bg-gray-300 hover:bg-primary text-gray-800 font-bold py-2 px-4 rounded-l"
                 onClick={() => handleClosePedido(index)}
-                disabled={jogador.isClosed}
               >
-                Fechar Pedido
+                {jogador.isClosed ? 'Reabrir' : 'Fechar Pedido'}
               </button>
             </div>
           </section>
         );
       })}
 
-      {/* Modal para selecionar a forma de pagamento */}
       {showPaymentModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-            <h2 className="text-xl font-bold mb-4">Selecione a forma de pagamento</h2>
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-2xl font-semibold mb-4">Selecione a Forma de Pagamento</h2>
             <select
-              className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              onChange={(e) => handlePaymentSelection(e.target.value)}
               value={selectedPayment}
+              onChange={(e) => handlePaymentSelection(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md mb-4"
             >
               <option value="">Selecione</option>
               <option value="dinheiro">Dinheiro</option>
               <option value="cartao">Cartão</option>
               <option value="pix">PIX</option>
             </select>
-            <button
-              className="bg-green-600 text-white py-2 px-4 rounded-lg w-full"
-              onClick={() => handleConfirmPayment()}
-            >
-              Confirmar Pagamento
-            </button>
+            <div className="flex justify-between mt-4">
+              <button
+                className="bg-gray-500 hover:bg-black text-white py-2 px-4 rounded-lg"
+                onClick={() => setShowPaymentModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="bg-black hover:bg-primary py-1 px-2 rounded-lg text-white"
+                onClick={handleConfirmPayment}
+              >
+                Confirmar Pagamento
+              </button>
+            </div>
           </div>
         </div>
       )}

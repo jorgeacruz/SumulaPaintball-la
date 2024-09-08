@@ -17,7 +17,6 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME
 });
 
-// Conexão com o banco de dados
 db.connect(err => {
   if (err) {
     console.error('Erro ao conectar ao banco de dados:', err);
@@ -190,7 +189,6 @@ app.get('/estoque', (req, res) => {
   });
 });
 
-// Rota para adicionar um item ao estoque
 app.post('/estoque', (req, res) => {
   const { item, valor, quantidade } = req.body;
   const query = 'INSERT INTO estoque (nome, valor, quantidade) VALUES (?, ?, ?)';
@@ -203,7 +201,6 @@ app.post('/estoque', (req, res) => {
   });
 });
 
-// Rota para remover um item do estoque
 app.delete('/estoque/:nome', (req, res) => {
   const { nome } = req.params;
   const query = 'DELETE FROM estoque WHERE nome = ?';
@@ -283,7 +280,6 @@ app.get('/estoque/:nome', (req, res) => {
 app.post('/pedidos', (req, res) => {
   const { nomeJogador, items, formaPagamento } = req.body;
 
-  // Primeiro, insere o pedido na tabela `pedidos`
   const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento) VALUES (?, ?)';
   db.query(queryPedido, [nomeJogador, formaPagamento], (err, result) => {
     if (err) {
@@ -292,9 +288,8 @@ app.post('/pedidos', (req, res) => {
     } else {
       const pedidoId = result.insertId;
 
-      // Agora, insere os itens do pedido na tabela `itens_pedidos`
       const queryItens = 'INSERT INTO itens_pedidos (pedido_id, nome_item, quantidade, valor) VALUES ?';
-      const values = items.map(item => [pedidoId, item.nome, 1, item.valor]); // 1 como quantidade
+      const values = items.map(item => [pedidoId, item.nome, 1, item.valor]); 
 
       db.query(queryItens, [values], (err, result) => {
         if (err) {
