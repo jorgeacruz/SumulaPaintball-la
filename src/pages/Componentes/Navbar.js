@@ -1,7 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import logo from '../../images/logo_la.png';
 
 function NavBar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth'); 
+    navigate('/'); 
+  };
+
   return (
     <nav className="bg-black">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -27,7 +35,9 @@ function NavBar() {
               <Link to="/estoque" className="text-white hover:text-primary duration-150">Estoque</Link>
             </li>
             <li>
-              <Link to="/" className="text-white hover:text-primary duration-150">Sair do sistema</Link>
+              <button onClick={handleLogout} className="text-white hover:text-primary duration-150">
+                Sair do sistema
+              </button>
             </li>
           </ul>
         </div>

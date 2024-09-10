@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NavBar from '../pages/Componentes/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 export default function Estoque() {
+  const navigate = useNavigate();
   const [estoque, setEstoque] = useState([]);
   const [inputs, setInputs] = useState({});
   const [editMode, setEditMode] = useState({});
 
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('auth');
+    if (!isAuthenticated) {
+      navigate("/");  // Redireciona para a página de login se não estiver autenticado
+    }
+  }, [navigate]);
+  
   const fetchEstoque = () => {
     axios.get('http://localhost:5000/estoque')
       .then(response => {

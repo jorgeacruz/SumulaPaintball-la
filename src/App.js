@@ -29,6 +29,7 @@ function Login() {
     const data = await response.json();
     
     if (data.success) {
+        localStorage.setItem('auth', true);
         navigate("/estoque");
     } else {
       alert('Usuário ou senha incorretos!');
