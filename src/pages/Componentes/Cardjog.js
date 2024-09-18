@@ -20,8 +20,12 @@ export default function CardJogador() {
   };
 
   const handleRemoveJogador = (index) => {
-    const updatedJogadores = jogadores.filter((_, i) => i !== index);
-    setJogadores(updatedJogadores);
+    if (jogadores.length > 1) {
+      const updatedJogadores = jogadores.filter((_, i) => i !== index);
+      setJogadores(updatedJogadores);
+    } else {
+      alert('Deve haver pelo menos um jogador na tela.');
+    }
   };
 
   const handleNomeChange = (index, event) => {

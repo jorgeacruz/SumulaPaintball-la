@@ -1,10 +1,12 @@
-import logo from '../images/logo_la.png';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavBar from './Componentes/Navbar';
+import logo from '../images/logo_la.png';
 
 function AddJogo() {
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
+  const navigate = useNavigate(); // Hook para redirecionar
 
   const handleAdicionar = async () => {
     try {
@@ -20,6 +22,7 @@ function AddJogo() {
 
       if (result.success) {
         alert('Jogo adicionado com sucesso!');
+        navigate('/statusgame'); // Redireciona para StatusGame após o jogo ser adicionado
       } else {
         alert('Erro ao adicionar jogo.');
       }
