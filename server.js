@@ -278,10 +278,10 @@ app.get('/estoque/:nome', (req, res) => {
   });
 });
 app.post('/pedidos', (req, res) => {
-  const { nomeJogador, items, formaPagamento } = req.body;
+  const { nomeJogador, items, formaPagamento, valorTotal } = req.body;  // Recebendo o valor total
 
-  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento) VALUES (?, ?)';
-  db.query(queryPedido, [nomeJogador, formaPagamento], (err, result) => {
+  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total) VALUES (?, ?, ?)';  // Incluindo o valor total
+  db.query(queryPedido, [nomeJogador, formaPagamento, valorTotal], (err, result) => {
     if (err) {
       console.error('Erro ao cadastrar pedido:', err);
       res.status(500).send('Erro no servidor');

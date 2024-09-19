@@ -83,14 +83,17 @@ export default function CardJogador() {
   const handleConfirmPayment = () => {
     const jogador = jogadores[jogadorIndexForPayment];
     const itemsToUpdate = jogador.items;
-
+  
+    // Cálculo do valor total do pedido
+    const valorTotalJogador = jogador.items.reduce((sum, item) => sum + item.valor, 0);
+  
     const itemCountMap = itemsToUpdate.reduce((acc, item) => {
       acc[item.nome] = (acc[item.nome] || 0) + 1;
       return acc;
     }, {});
-
+  
     let podeFechar = true;
-
+  
     const promises = Object.keys(itemCountMap).map(nome => {
       const quantidadeParaSubtrair = itemCountMap[nome];
       return axios.get(`http://localhost:5000/estoque/${nome}`)
@@ -108,7 +111,7 @@ export default function CardJogador() {
         })
         .catch(error => console.error('Erro ao obter quantidade atual do estoque:', error));
     });
-
+  
     Promise.all(promises).then(() => {
       if (!podeFechar) {
         console.error('Não foi possível fechar o pedido devido à quantidade insuficiente no estoque.');
@@ -117,10 +120,11 @@ export default function CardJogador() {
           nomeJogador: jogador.nome,
           items: jogador.items,
           formaPagamento: selectedPayment,
+          valorTotal: valorTotalJogador,  // Enviando o valor total para o banco
         })
         .then(() => console.log('Pedido e pagamento cadastrados com sucesso!'))
         .catch(error => console.error('Erro ao cadastrar pedido:', error));
-
+  
         const updatedJogadores = [...jogadores];
         updatedJogadores[jogadorIndexForPayment].isClosed = true;
         setJogadores(updatedJogadores);

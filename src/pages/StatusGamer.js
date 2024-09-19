@@ -26,7 +26,6 @@ export default function StatusGame() {
     fetchGameData(); 
   }, []);
 
-  // Função para adicionar um novo card (jogador)
   const handleAddJogador = () => {
     const newNumero = (jogadores.length + 1).toString(); // Incrementar o número do jogador
     const novoJogador = { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }; // Novo jogador
@@ -34,7 +33,6 @@ export default function StatusGame() {
     setJogadores([...jogadores, novoJogador]); // Adiciona o novo jogador ao estado
   };
 
-  // Função para fechar ou reabrir o pedido
   const handleClosePedido = (index) => {
     const updatedJogadores = [...jogadores];
     updatedJogadores[index].isClosed = !updatedJogadores[index].isClosed; // Alterna o estado de "fechado"
@@ -49,7 +47,6 @@ export default function StatusGame() {
 
   return (
     <section className="bg-black text-white w-full h-auto rounded-md p-3 flex flex-col gap-4">
-      {/* Informações do jogo no topo */}
       <div className="flex justify-between w-full gap-4 mb-4">
         <div className="flex flex-col items-start">
           <p className="font-semibold">Data da Partida</p>
