@@ -303,6 +303,19 @@ app.post('/pedidos', (req, res) => {
   });
 });
 
+app.get('/estoque/bolinhas', (req, res) => {
+  const query = 'SELECT quantidade FROM estoque WHERE nome = "bolinhas"';
+  db.query(query, (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Bolinhas não encontradas no estoque' });
+    }
+    res.json({ quantidade: result[0].quantidade });
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);

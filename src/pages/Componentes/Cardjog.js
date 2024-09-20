@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-export default function CardJogador() {
-  const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
+export default function CardJogador({ jogadores, setJogadores }) {
   const [estoque, setEstoque] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);

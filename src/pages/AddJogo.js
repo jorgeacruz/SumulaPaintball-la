@@ -17,12 +17,16 @@ function AddJogo() {
         },
         body: JSON.stringify({ data, hora })
       });
-
+  
       const result = await response.json();
-
+  
       if (result.success) {
+        // Armazena a data e a hora no localStorage
+        localStorage.setItem('dataJogo', data);
+        localStorage.setItem('horaJogo', hora);
+  
         alert('Jogo adicionado com sucesso!');
-        navigate('/statusgame'); // Redireciona para StatusGame após o jogo ser adicionado
+        navigate('/statusgame'); // Redireciona para StatusGame
       } else {
         alert('Erro ao adicionar jogo.');
       }

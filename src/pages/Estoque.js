@@ -8,11 +8,12 @@ export default function Estoque() {
   const [estoque, setEstoque] = useState([]);
   const [inputs, setInputs] = useState({});
   const [editMode, setEditMode] = useState({});
+  
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('auth');
     if (!isAuthenticated) {
-      navigate("/");  // Redireciona para a página de login se não estiver autenticado
+      navigate("/");  
     }
   }, [navigate]);
   

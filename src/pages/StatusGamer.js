@@ -1,41 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import VendaAvulsa from './Componentes/VendaAvul';
 import CardJog from './Componentes/Cardjog';
+import axios from 'axios';
 
 export default function StatusGame() {
   const [jogo, setJogo] = useState({});
-  const [estoque, setEstoque] = useState(0);
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
+  const [bolinhas, setBolinhas] = useState(null);
 
-  // Função para buscar os dados do último jogo e do estoque
-  const fetchGameData = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/statusgame');
-      const result = await response.json();
-      
-      if (result.success) {
-        setJogo(result.jogo); // Definir dados do jogo (data e hora)
-        setEstoque(result.estoque); // Definir a quantidade de bolinhas no estoque
-      }
-    } catch (error) {
-      console.error('Erro ao buscar dados:', error);
-    }
+  const fetchBolinhas = () => {
+    axios.get('http://localhost:5000/estoque/bolinhas')
+      .then(response => {
+        setBolinhas(response.data.quantidade); // Define a quantidade de bolinhas
+      })
+      .catch(error => {
+        console.error('Erro ao buscar bolinhas:', error);
+      });
   };
 
   useEffect(() => {
-    fetchGameData(); 
+    fetchBolinhas();
+
+    const storedData = localStorage.getItem('dataJogo');
+    const storedHora = localStorage.getItem('horaJogo');
+  
+    if (storedData) {
+      setJogo({ data: storedData, hora: storedHora });
+    }
+    const interval = setInterval(() => {
+      fetchBolinhas(); 
+    }, 5000); // Intervalo de 5 segundos
+
+    return () => clearInterval(interval); 
   }, []);
 
   const handleAddJogador = () => {
-    const newNumero = (jogadores.length + 1).toString(); // Incrementar o número do jogador
-    const novoJogador = { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }; // Novo jogador
-
-    setJogadores([...jogadores, novoJogador]); // Adiciona o novo jogador ao estado
+    const newNumero = (jogadores.length + 1).toString();
+    setJogadores([...jogadores, { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }]);
   };
 
   const handleClosePedido = (index) => {
     const updatedJogadores = [...jogadores];
-    updatedJogadores[index].isClosed = !updatedJogadores[index].isClosed; // Alterna o estado de "fechado"
+    updatedJogadores[index].isClosed = !updatedJogadores[index].isClosed;
     setJogadores(updatedJogadores);
   };
 
@@ -54,15 +60,16 @@ export default function StatusGame() {
         </div>
         <div className="flex flex-col items-start">
           <p className="font-semibold">Jogadores Ativos</p>
-          <p id="playerAtivo" className="font-semibold text-3xl">{jogadoresAtivos}</p> {/* Exibe jogadores ativos */}
+          <p id="playerAtivo" className="font-semibold text-3xl">{jogadoresAtivos}</p> 
         </div>
         <div className="flex flex-col items-start">
           <p className="font-semibold">Jogadores Finalizados</p>
-          <p id="playerInativo" className="font-semibold text-3xl">{jogadoresInativos}</p> {/* Exibe jogadores inativos */}
+          <p id="playerInativo" className="font-semibold text-3xl">{jogadoresInativos}</p> 
         </div>
         <div className="flex flex-col items-start">
-          <p className="font-semibold">Bolinhas Estoque</p>
-          <p id="bolinhasEstoque" className="font-semibold text-3xl">{estoque || 'Carregando...'}</p>
+        <p id="bolinhasEstoque" className="font-semibold text-3xl">
+          {bolinhas !== null ? `Bolinhas disponíveis: ${bolinhas}` : 'Carregando...'}
+        </p>
         </div>
       </div>
 
@@ -72,7 +79,7 @@ export default function StatusGame() {
           jogadores={jogadores} 
           setJogadores={setJogadores} 
           handleAddJogador={handleAddJogador} 
-          handleClosePedido={handleClosePedido} 
+          handleClosePedido={handleClosePedido}   
         />
         <VendaAvulsa />
       </div>
