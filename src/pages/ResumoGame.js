@@ -36,12 +36,12 @@ export default function ResumoGame() {
                </div>
                <div className="grid grid-flow-row md:grid-cols-2 gap-2 mt-3">
                    <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
-                       <h1 className="text-white text-2xl font-bold">Data Partida</h1>
-                       <h2 id="datapartida" className="text-primary text-3xl font-semibold">12/12/2024</h2>
+                       <h1 className="text-white text-2xl font-bold">Avulso</h1>
+                       <h2 id="datapartida" className="text-primary text-3xl font-semibold">R$200,00</h2>
                    </div>
                    <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
-                       <h1 className="text-white text-2xl font-bold">Total Jogadores</h1>
-                       <h2 id="totalJogadores" className="text-primary text-3xl font-semibold">44</h2>
+                       <h1 className="text-white text-2xl font-bold">Valor da Partida</h1>
+                       <h2 id="totalJogadores" className="text-primary text-3xl font-semibold">R$1.200,00</h2>
                    </div>
                </div>
                <div className="grid grid-flow-row md:grid-cols-2 p-2 gap-2">
