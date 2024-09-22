@@ -12,6 +12,7 @@ import AddJogo from './pages/AddJogo';
 import CardJogador from './pages/Componentes/Cardjog';
 import CardVendaAvulsa from './pages/Componentes/VendaAvul';
 import StatusGame from './pages/StatusGamer';
+import ResumoGame from './pages/ResumoGame';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -86,6 +87,7 @@ function App() {
         <Route path="/cardjogador" element={<CardJogador />} />
         <Route path="/vendaavulsa" element={<CardVendaAvulsa />} />
         <Route path="/statusgame" element={<StatusGame />} />
+        <Route path="/resumogame" element={<ResumoGame/>}/>
       </Routes>
     </Router>
   );

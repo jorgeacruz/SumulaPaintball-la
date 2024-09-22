@@ -129,9 +129,17 @@ export default function CardJogador() {
         updatedJogadores[jogadorIndexForPayment].isClosed = true;
         setJogadores(updatedJogadores);
         setShowPaymentModal(false);
-      }
-    });
-  };
+
+        // Armazenar os dados no localStorage
+        const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
+        pagamentosAnteriores.push({
+        valorTotal: valorTotalJogador,
+        formaPagamento: selectedPayment
+      });
+      localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
+    }
+  });
+};
   
   return (
     <div className="flex flex-wrap gap-4">

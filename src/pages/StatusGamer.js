@@ -50,7 +50,6 @@ export default function StatusGame() {
 
   // Contar jogadores inativos (cards fechados)
   const jogadoresInativos = jogadores.filter(jogador => jogador.isClosed).length;
-
   return (
     <section className="bg-black text-white w-full h-auto rounded-md p-3 flex flex-col gap-4">
       <div className="flex justify-between w-full gap-4 mb-4">

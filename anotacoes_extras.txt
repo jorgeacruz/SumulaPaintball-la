@@ -1,0 +1,14 @@
+// bibliotecas de Alert Pessonalizado
+
+- React-toastify
+
+https://fkhadra.github.io/react-toastify/installation
+
+- axios
+- bcrypt
+- body-parser
+- cors
+- dotenv
+- express
+- mysql
+- mysql2

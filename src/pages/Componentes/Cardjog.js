@@ -128,6 +128,14 @@ export default function CardJogador({ jogadores, setJogadores }) {
         updatedJogadores[jogadorIndexForPayment].isClosed = true;
         setJogadores(updatedJogadores);
         setShowPaymentModal(false);
+  
+        // Armazenar os dados no localStorage
+        const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
+        pagamentosAnteriores.push({
+          valorTotal: valorTotalJogador,
+          formaPagamento: selectedPayment
+        });
+        localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
       }
     });
   };
