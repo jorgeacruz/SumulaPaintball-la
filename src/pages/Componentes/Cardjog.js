@@ -234,7 +234,7 @@ export default function CardJogador({ jogadores, setJogadores }) {
                 className="w-[180px] bg-gray-300 hover:bg-primary text-gray-800 font-bold py-2 px-4 rounded-l"
                 onClick={() => handleClosePedido(index)}
               >
-                {jogador.isClosed ? 'Reabrir' : 'Fechar Pedido'}
+                {jogador.isClosed ? 'Fechado' : 'Fechar Pedido'}
               </button>
             </div>
           </section>
