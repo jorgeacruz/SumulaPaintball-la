@@ -1,7 +1,7 @@
 // bibliotecas de Alert Pessonalizado
 
 - React-toastify
-
+Descrição: React-toastify é uma biblioteca que permite adicionar notificações personalizadas em aplicações React. Suporta diversos tipos de mensagens, como sucesso, erro e informações, e é altamente configurável para se adaptar ao estilo da sua aplicação.
 Link: https://fkhadra.github.io/react-toastify/installation
 
 - Axios
