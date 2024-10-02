@@ -4,7 +4,15 @@ import { useState } from "react";
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import CadJog from './pages/login/CadJog';
 import Loginjog from './pages/Loginjog';
-
+import NavBar from './pages/Componentes/Navbar';
+import ForgotPassword from './pages/MudaSenhaJog';
+import Changepass from './pages/MudaSenhaAdm';
+import Estoque from './pages/Estoque';
+import AddJogo from './pages/AddJogo';
+import CardJogador from './pages/Componentes/Cardjog';
+import CardVendaAvulsa from './pages/Componentes/VendaAvul';
+import StatusGame from './pages/StatusGamer';
+import ResumoGame from './pages/ResumoGame';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -23,7 +31,8 @@ function Login() {
     const data = await response.json();
     
     if (data.success) {
-        navigate("/cadjog");
+        localStorage.setItem('auth', true);
+        navigate("/estoque");
     } else {
       alert('Usuário ou senha incorretos!');
     }
@@ -57,7 +66,7 @@ function Login() {
         >
           Acessa sistema
         </button>
-        <p className='text-white font-light text-sm'>Esqueci minha senha</p>
+        <p className='text-primary mt-10'><a href='/mudarsenhaadm'>Esqueci minha senha</a></p>
       </div>
     </div>
   );
@@ -70,6 +79,15 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/cadjog" element={<CadJog />} />
         <Route path="/loginjog" element={<Loginjog />} />
+        <Route path="/Navbar" element={<NavBar />} />
+        <Route path="/mudarsenhajog" element={<ForgotPassword />} />
+        <Route path="/mudarsenhaadm" element={<Changepass />} />
+        <Route path="/estoque" element={<Estoque />} />
+        <Route path="/addjogo" element={<AddJogo />} />
+        <Route path="/cardjogador" element={<CardJogador />} />
+        <Route path="/vendaavulsa" element={<CardVendaAvulsa />} />
+        <Route path="/statusgame" element={<StatusGame />} />
+        <Route path="/resumogame" element={<ResumoGame/>}/>
       </Routes>
     </Router>
   );

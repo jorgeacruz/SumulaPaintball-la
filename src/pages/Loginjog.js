@@ -54,8 +54,8 @@ function Loginjog() {
         >
           Acessar Conta
         </button>
-        <p className='text-primary mt-10'><a href='/esqueci-minha-senha'>Esqueci minha senha</a></p>
-        <p className='text-primary mt-10'><span className='text-white'>Não possuo cadastro!</span> <a href='/cadastro'>Clique aqui</a></p>
+        <p className='text-primary mt-10'><a href='/mudarsenhajog'>Esqueci minha senha</a></p>
+        <p className='text-primary mt-10'><span className='text-white'>Não possuo cadastro!!</span> <a href='/cadjog'>Clique aqui</a></p>
       </div>
     </div>
   );
