@@ -35,3 +35,5 @@ Link: https://www.mysql.com/
 - MySQL2
 Descrição: MySQL2 é uma biblioteca Node.js para interagir com bancos de dados MySQL, que oferece suporte a Promises e é compatível com a API do MySQL original, além de fornecer melhor desempenho e mais recursos.
 Link: https://www.npmjs.com/package/mysql2
+
+- Twilio

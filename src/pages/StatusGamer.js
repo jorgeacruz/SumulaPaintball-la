@@ -8,6 +8,14 @@ export default function StatusGame() {
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
   const [bolinhas, setBolinhas] = useState(null);
 
+  const calcularValorTotalCompras = () => {
+    return jogadores
+      .filter(jogador => jogador.isClosed) // Filtrar jogadores que fecharam o pedido
+      .reduce((total, jogador) => {
+        const valorTotalJogador = jogador.items.reduce((sum, item) => sum + item.valor, 0);
+        return total + valorTotalJogador; // Somar o valor total de cada jogador fechado
+      }, 0); // Valor inicial do total é 0
+  };
   const fetchBolinhas = () => {
     axios.get('http://localhost:5000/estoque/bolinhas')
       .then(response => {
@@ -69,6 +77,10 @@ export default function StatusGame() {
         <p id="bolinhasEstoque" className="font-semibold text-3xl">
           {bolinhas !== null ? `Bolinhas disponíveis: ${bolinhas}` : 'Carregando...'}
         </p>
+      <div className="flex flex-col items-start">
+  <p className="font-semibold">Valor Total de Compras</p>
+  <p className="font-semibold text-3xl">R${calcularValorTotalCompras().toFixed(2)}</p>
+    </div>
         </div>
       </div>
 

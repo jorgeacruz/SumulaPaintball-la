@@ -4,11 +4,16 @@ const cors = require('cors');
 const connection = require('./db');
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2');
+const twilio = require('twilio');
 
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+
+/*const accountSid = 'SEU_ACCOUNT_SID'; // Substitua com seu Account SID
+const authToken = 'SEU_AUTH_TOKEN'; // Substitua com seu Auth Token
+const client = new twilio(accountSid, authToken);*/
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -89,7 +94,22 @@ app.post('/cadastro', (req, res) => {
       res.json({ success: true, message: 'Cadastro realizado com sucesso!' });
     }
   });
+  client.messages
+    .create({
+      body: `Olá, o cadastro de ${username} foi realizado com sucesso!`,
+      from: 'whatsapp:+14155238886', // Esse é o número padrão do Twilio WhatsApp Sandbox
+      to: `whatsapp:+21991944621` // Enviar para o número de telefone do jogador
+    })
+    .then(message => {
+      console.log(`Mensagem enviada com sucesso: ${message.sid}`);
+      res.json({ success: true });
+    })
+    .catch(error => {
+      console.error('Erro ao enviar a mensagem:', error);
+      res.json({ success: false, error: 'Erro ao enviar mensagem do WhatsApp' });
+    });
 });
+
 app.post('/verifyuser', (req, res) => {
   const { username, email } = req.body;
   const query = 'SELECT * FROM jogadores WHERE username = ? AND email = ?';
@@ -278,18 +298,29 @@ app.get('/estoque/:nome', (req, res) => {
   });
 });
 app.post('/pedidos', (req, res) => {
-  const { nomeJogador, items, formaPagamento, valorTotal } = req.body;  // Recebendo o valor total
+  const { nomeJogador, items, formaPagamento, valorTotal,  dataPedido  } = req.body;  // Recebendo o valor total
 
-  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total) VALUES (?, ?, ?)';  // Incluindo o valor total
-  db.query(queryPedido, [nomeJogador, formaPagamento, valorTotal], (err, result) => {
+  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total, data_pedido) VALUES (?, ?, ?, ?)';  // Incluindo o valor total
+  db.query(queryPedido, [nomeJogador, formaPagamento, valorTotal, dataPedido], (err, result) => {
     if (err) {
       console.error('Erro ao cadastrar pedido:', err);
       res.status(500).send('Erro no servidor');
     } else {
       const pedidoId = result.insertId;
 
+      // Mapeando quantidade de itens
+      const itemCountMap = items.reduce((acc, item) => {
+        acc[item.nome] = (acc[item.nome] || 0) + 1;
+        return acc;
+      }, {});
+
       const queryItens = 'INSERT INTO itens_pedidos (pedido_id, nome_item, quantidade, valor) VALUES ?';
-      const values = items.map(item => [pedidoId, item.nome, 1, item.valor]); 
+      const values = Object.keys(itemCountMap).map(nomeItem => [
+        pedidoId, 
+        nomeItem, 
+        itemCountMap[nomeItem],  // Quantidade correta
+        items.find(item => item.nome === nomeItem).valor  // Valor do item
+      ]);
 
       db.query(queryItens, [values], (err, result) => {
         if (err) {
@@ -302,6 +333,7 @@ app.post('/pedidos', (req, res) => {
     }
   });
 });
+
 
 app.get('/estoque/bolinhas', (req, res) => {
   const query = 'SELECT quantidade FROM estoque WHERE nome = "bolinhas"';

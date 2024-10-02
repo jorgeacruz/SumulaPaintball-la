@@ -100,7 +100,7 @@ export default function CardJogador() {
         .then(response => {
           const quantidadeAtual = response.data.quantidade;
           if (quantidadeAtual < quantidadeParaSubtrair) {
-            console.warn(`Quantidade insuficiente no estoque para o item ${nome}`);
+            alert(`Quantidade insuficiente no estoque para o item ${nome}`);
             podeFechar = false;
           } else {
             const novaQuantidade = quantidadeAtual - quantidadeParaSubtrair;
@@ -116,11 +116,14 @@ export default function CardJogador() {
       if (!podeFechar) {
         console.error('Não foi possível fechar o pedido devido à quantidade insuficiente no estoque.');
       } else {
+        const storedData = localStorage.getItem('dataJogo');
+
         axios.post('http://localhost:5000/pedidos', {
           nomeJogador: jogador.nome,
           items: jogador.items,
           formaPagamento: selectedPayment,
-          valorTotal: valorTotalJogador,  // Enviando o valor total para o banco
+          valorTotal: valorTotalJogador,
+          dataJogo: storedData,  
         })
         .then(() => console.log('Pedido e pagamento cadastrados com sucesso!'))
         .catch(error => console.error('Erro ao cadastrar pedido:', error));
@@ -134,7 +137,7 @@ export default function CardJogador() {
         const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
         pagamentosAnteriores.push({
         valorTotal: valorTotalJogador,
-        formaPagamento: selectedPayment
+        formaPagamento: selectedPayment, 
       });
       localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
     }

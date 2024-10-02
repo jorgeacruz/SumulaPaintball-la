@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './Componentes/Navbar';
 import logo from '../images/logo_la.png';
@@ -7,6 +7,20 @@ function AddJogo() {
   const [data, setData] = useState('');
   const [hora, setHora] = useState('');
   const navigate = useNavigate(); // Hook para redirecionar
+
+  // Função para obter a data e hora atual no formato correto
+  useEffect(() => {
+    const now = new Date();
+
+    // Formatando a data no formato YYYY-MM-DD
+    const dataAtual = now.toISOString().split('T')[0];
+
+    // Formatando a hora no formato HH:MM
+    const horaAtual = now.toTimeString().split(':').slice(0, 2).join(':');
+
+    setData(dataAtual);
+    setHora(horaAtual);
+  }, []);
 
   const handleAdicionar = async () => {
     try {
