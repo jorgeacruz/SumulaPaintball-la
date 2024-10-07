@@ -8,7 +8,7 @@ function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [step, setStep] = useState(1); // Step 1: Verify username and email, Step 2: Set new password
+  const [step, setStep] = useState(1); 
   const navigate = useNavigate();
 
   const handleVerifyUser = async () => {

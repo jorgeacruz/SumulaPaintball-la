@@ -1,5 +1,5 @@
 import './App.css';
-import logo from '../src/images/logo_la.png';
+import logo from './images/logo_la.png';
 import { useState } from "react";  
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import CadJog from './pages/login/CadJog';

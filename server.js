@@ -236,18 +236,25 @@ app.put('/estoque/:nome', (req, res) => {
   const nome = req.params.nome;
   const { quantidade, valor } = req.body;
 
+  // Verifica se o item é o "marcador especial"
+  if (nome === 'marcador especial' && quantidade !== undefined) {
+    return res.status(400).send("A quantidade do 'marcador especial' não pode ser alterada.");
+  }
+
   if (quantidade === undefined && valor === undefined) {
     return res.status(400).send("Nenhum valor para atualizar fornecido");
   }
 
   let query = 'UPDATE estoque SET ';
   const values = [];
-  
+
+  // Atualiza a quantidade se fornecida, exceto para o "marcador especial"
   if (quantidade !== undefined) {
     query += 'quantidade = ? ';
     values.push(quantidade);
   }
-  
+
+  // Atualiza o valor se fornecido
   if (valor !== undefined) {
     if (values.length > 0) {
       query += ', ';

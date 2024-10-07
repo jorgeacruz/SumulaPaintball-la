@@ -59,6 +59,7 @@ export default function StatusGame() {
   // Contar jogadores inativos (cards fechados)
   const jogadoresInativos = jogadores.filter(jogador => jogador.isClosed).length;
   return (
+    <section className="bg-black text-white min-h-screen w-full h-auto rounded-md p-3 flex flex-col gap-4">
     <section className="bg-black text-white w-full h-auto rounded-md p-3 flex flex-col gap-4">
       <div className="flex justify-between w-full gap-4 mb-4">
         <div className="flex flex-col items-start">
@@ -78,8 +79,6 @@ export default function StatusGame() {
           {bolinhas !== null ? `Bolinhas disponíveis: ${bolinhas}` : 'Carregando...'}
         </p>
       <div className="flex flex-col items-start">
-  <p className="font-semibold">Valor Total de Compras</p>
-  <p className="font-semibold text-3xl">R${calcularValorTotalCompras().toFixed(2)}</p>
     </div>
         </div>
       </div>
@@ -94,6 +93,7 @@ export default function StatusGame() {
         />
         <VendaAvulsa />
       </div>
+    </section>
     </section>
   );
 }
