@@ -1,70 +1,45 @@
-# Getting Started with Create React App
+## GPaint-LA - Gerenciamento de Jogo 
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### Descrição
+GPaint-LA é um sistema simples para gerenciar os jogadores de Paintball, onde o consumo de insumos (tais como: bebidas, bolinhas, tipo de marcador e etc...)  dentro da arena é registrado num card individual.
 
-## Available Scripts
+O sistema contêm Estoque de Insumos, Financeiro e venda avulsa.
 
-In the project directory, you can run:
+## Bibliotecas
 
-### `npm start`
+### React-toastify
+Permite adicionar notificações personalizadas em aplicações React. Suporta diversos tipos de mensagens, como sucesso, erro e informações, e é altamente configurável para se adaptar ao estilo da sua aplicação.
+Link: https://fkhadra.github.io/react-toastify/installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Axios
+Descrição: Axios é uma biblioteca para fazer requisições HTTP, que funciona tanto no navegador quanto no Node.js. É baseada em Promises, facilitando o tratamento de respostas assíncronas.
+Link: https://axios-http.com/
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Bcrypt
+Descrição: Bcrypt é uma biblioteca para hashing de senhas, proporcionando uma maneira segura de armazenar senhas em bancos de dados. Ela implementa um algoritmo de hash que inclui um fator de custo, tornando os hashes mais lentos e seguros contra ataques de força bruta.
+Link: https://www.npmjs.com/package/bcrypt
 
-### `npm test`
+### Body-Parser
+Descrição: Body-Parser é um middleware para Express que permite analisar o corpo das requisições HTTP. Ele suporta diferentes tipos de payload, como JSON e URL-encoded, facilitando o acesso a dados enviados em requisições.
+Link: https://github.com/expressjs/body-parser
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### CORS
+Descrição: CORS (Cross-Origin Resource Sharing) é um middleware que permite que recursos de um servidor sejam acessados por páginas web de diferentes origens. É essencial para a segurança de aplicações web que fazem requisições a APIs externas.
+Link: https://github.com/expressjs/cors
 
-### `npm run build`
+### Dotenv
+Descrição: Dotenv é uma biblioteca que carrega variáveis de ambiente de um arquivo .env para process.env em Node.js. Isso é útil para manter credenciais e configurações fora do código-fonte.
+Link: https://github.com/motdotla/dotenv
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Express
+Descrição: Express é um framework web para Node.js que facilita a criação de aplicativos e APIs. Ele oferece um conjunto robusto de recursos para construir aplicações web, incluindo roteamento, middleware e suporte a diferentes formatos de dados.
+Link: https://expressjs.com/
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### MySQL
+Descrição: MySQL é um sistema de gerenciamento de banco de dados relacional, amplamente utilizado para armazenar dados em aplicações web. Ele fornece uma interface SQL para interagir com os dados.
+Link: https://www.mysql.com/
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### MySQL2
+Descrição: MySQL2 é uma biblioteca Node.js para interagir com bancos de dados MySQL, que oferece suporte a Promises e é compatível com a API do MySQL original, além de fornecer melhor desempenho e mais recursos.
+Link: https://www.npmjs.com/package/mysql2
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
