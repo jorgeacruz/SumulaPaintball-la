@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../Componentes/Navbar';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function CadJog() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -28,14 +31,14 @@ function CadJog() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Cadastro realizado com sucesso! Mensagem enviada para o seu WhatsApp.');
+        toast.success('Cadastro realizado com sucesso! Mensagem enviada para o seu WhatsApp.');
         navigate("/loginjog");
       } else {
-        alert('Erro ao realizar o cadastro.');
+        toast.warn('Erro ao realizar o cadastro.');
       }
     } catch (error) {
       console.error('Erro na solicitação:', error);
-      alert('Erro ao realizar o cadastro.');
+      toast.warn('Erro ao realizar o cadastro.');
     }
   };
 
@@ -88,7 +91,7 @@ function CadJog() {
           />
           <button
             id="bt-log"
-            className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]'
+            className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] hover:scale-110 duration-300'
             onClick={handleCadastro}
           >
             Fazer Cadastro
@@ -96,6 +99,18 @@ function CadJog() {
           <p className='text-primary mt-10'><span className='text-white'>Já possuo cadastro!</span> <a href='./loginjog/'>Clique aqui</a></p>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+       // theme="light"
+      />
     </div>
   );
 }

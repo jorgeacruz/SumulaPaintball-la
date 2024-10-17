@@ -2,6 +2,8 @@ import logo from '../images/logo_la.png';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ForgotPassword() {
   const [username, setUsername] = useState('');
@@ -30,17 +32,17 @@ function ForgotPassword() {
       if (data.success) {
         setStep(2);
       } else {
-        alert('Usuário ou email incorretos!');
+        toast.warn('Usuário ou email incorretos!');
       }
     } catch (error) {
       console.error('Erro na solicitação:', error);
-      alert('Erro ao verificar usuário.');
+      toast.warn('Erro ao verificar usuário.');
     }
   };
 
   const handleResetPassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert('As senhas não coincidem.');
+      toast.warn('As senhas não coincidem.');
       return;
     }
 
@@ -60,14 +62,14 @@ function ForgotPassword() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Senha alterada com sucesso!');
+        toast.success('Senha alterada com sucesso!');
         navigate("/loginjog");
       } else {
-        alert('Erro ao alterar senha.');
+        toast.warn('Erro ao alterar senha.');
       }
     } catch (error) {
       console.error('Erro na solicitação:', error);
-      alert('Erro ao alterar senha.');
+      toast.warn('Erro ao alterar senha.');
     }
   };
 
@@ -125,6 +127,18 @@ function ForgotPassword() {
           </>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+       // theme="light"
+      />
     </div>
   );
 }

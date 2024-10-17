@@ -14,6 +14,9 @@ import CardVendaAvulsa from './pages/Componentes/VendaAvul';
 import StatusGame from './pages/StatusGamer';
 import ResumoGame from './pages/ResumoGame';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +37,7 @@ function Login() {
         localStorage.setItem('auth', true);
         navigate("/estoque");
     } else {
-      alert('Usuário ou senha incorretos!');
+      toast.warn('Usuário ou senha incorretos!');
     }
   };
 
@@ -61,13 +64,27 @@ function Login() {
         />
         <button 
           id="bt-log" 
-          className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]' 
+          className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] hover:scale-110 duration-300' 
           onClick={handleLogin}
         >
           Acessa sistema
         </button>
         <p className='text-primary mt-10'><a href='/mudarsenhaadm'>Esqueci minha senha</a></p>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+       // theme="light"
+      />
+
     </div>
   );
 }
