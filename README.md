@@ -1,9 +1,12 @@
 ## GPaint-LA - Gerenciamento de Jogo 
 
-### Descrição
+![L.A. Paintball](screen.png)
+
+## Descrição
 GPaint-LA é um sistema simples para gerenciar os jogadores de Paintball, onde o consumo de insumos (tais como: bebidas, bolinhas, tipo de marcador e etc...)  dentro da arena é registrado num card individual.
 
 O sistema contêm Estoque de Insumos, Financeiro e venda avulsa.
+
 
 ## Bibliotecas
 
@@ -42,4 +45,8 @@ Link: https://www.mysql.com/
 ### MySQL2
 Descrição: MySQL2 é uma biblioteca Node.js para interagir com bancos de dados MySQL, que oferece suporte a Promises e é compatível com a API do MySQL original, além de fornecer melhor desempenho e mais recursos.<br/>
 Link: https://www.npmjs.com/package/mysql2
+
+## Dev's
+- Jorge Cruz (Front-End)
+- Gabriel Felix (Back-End)
 
