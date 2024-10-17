@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './Componentes/Navbar';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function Changepass(){
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -30,17 +33,18 @@ function Changepass(){
       if (data.success) {
         setStep(2);
       } else {
-        alert('Usuário ou email incorretos!');
+        toast.warn('Usuário ou email incorretos!');
       }
     } catch (error) {
       console.error('Erro na solicitação:', error);
-      alert('Erro ao verificar usuário.');
+      toast.warn('Erro ao verficar usuário');
+      //alert('Erro ao verificar usuário.');
     }
   };
 
   const handleResetPassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert('As senhas não coincidem.');
+      toast.warn('As senhas não coincidem.');
       return;
     }
 
@@ -60,14 +64,14 @@ function Changepass(){
       const data = await response.json();
 
       if (data.success) {
-        alert('Senha alterada com sucesso!');
+        toast.success('Senha alterada com sucesso!');
         navigate("/");
       } else {
-        alert('Erro ao alterar senha.');
+        toast.warn('Erro ao alterar senha.');
       }
     } catch (error) {
       console.error('Erro na solicitação:', error);
-      alert('Erro ao alterar senha.');
+      toast.warn('Erro ao alterar senha.');
     }
   };
 
@@ -98,7 +102,7 @@ function Changepass(){
             />
             <button 
               id="bt-log" 
-              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]' 
+              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] hover:scale-110 duration-300' 
               onClick={handleVerifyAdm}>Verificar Usuário</button>
           </>
         ) : (
@@ -122,12 +126,24 @@ function Changepass(){
             />
             <button 
               id="bt-log" 
-              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]' 
+              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] hover:scale-110 duration-300' 
               onClick={handleResetPassword}>Alterar Senha</button>
           </>
         )}
       </div>
     </div>
+    <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+       // theme="light"
+      />
     </div>
   );
 }
