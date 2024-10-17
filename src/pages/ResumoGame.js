@@ -11,12 +11,11 @@ export default function ResumoGame() {
         avulso: 0,
         pix: 0,
     });
-    const [totalAvulso, setTotalAvulso] = useState(0);  // Variável para armazenar o valor total de avulso
-
+    const [totalAvulso, setTotalAvulso] = useState(0);  
     useEffect(() => {
         const storedData = localStorage.getItem('dataJogo');
         const storedHora = localStorage.getItem('horaJogo');
-        const storedTotalAvulso = localStorage.getItem('totalAvulso');  // Recuperar o valor do localStorage
+        const storedTotalAvulso = localStorage.getItem('totalAvulso');  
         
         if (storedTotalAvulso) {
             setTotalAvulso(parseFloat(storedTotalAvulso));
@@ -79,7 +78,7 @@ export default function ResumoGame() {
     };
 
     return (
-        <section id="resumo-partida" className="bg-black flex flex-col justify-center items-center pt-10">
+        <section id="resumo-partida" className="bg-black flex flex-col justify-center items-center pt-10 min-h-screen">
             <h1 className="text-white text-3xl font-semibold">Resumo da Partida</h1>
             <div className="w-1/2 h-auto pt-10">
                 <div className="grid grid-flow-row md:grid-cols-2 gap-2">
@@ -105,7 +104,7 @@ export default function ResumoGame() {
                         </div>
                         <div className="flex flex-row justify-around items-start">
                             <p className="text-xl font-semibold">Avulso</p>
-                            <p id="avulso">R${totalAvulso.toFixed(2)}</p> {/* Exibe o valor total de avulso */}
+                            <p id="avulso">R${totalAvulso.toFixed(2)}</p> 
                         </div>
                         <div className="flex flex-row justify-around items-start">
                             <p className="text-xl font-semibold">Pix</p>
@@ -116,7 +115,7 @@ export default function ResumoGame() {
                 <div className="grid grid-flow-row md:grid-cols-2 gap-2 mt-3">
                     <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
                         <h1 className="text-white text-2xl font-bold">Avulso</h1>
-                        <h2 id="avulsoTotal" className="text-primary text-3xl font-semibold">R${totalAvulso.toFixed(2)}</h2> {/* Também exibe o valor total aqui */}
+                        <h2 id="avulsoTotal" className="text-primary text-3xl font-semibold">R${totalAvulso.toFixed(2)}</h2> 
                     </div>
                     <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
                         <h1 className="text-white text-2xl font-bold">Valor da Partida</h1>
