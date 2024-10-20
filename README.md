@@ -15,6 +15,11 @@ Inclua ícones populares em seus projetos React facilmente com react-icons, que 
 <br/>
 link: https://react-icons.github.io/react-icons/
 
+### Reac-Tailwind-Datapicker
+Um componente moderno de selecionador de intervalo de datas para React usando Tailwind 3 e dayjs.
+<br/>
+link: https://react-tailwindcss-datepicker.vercel.app
+
 ### React-toastify
 Permite adicionar notificações personalizadas em aplicações React. Suporta diversos tipos de mensagens, como sucesso, erro e informações, e é altamente configurável para se adaptar ao estilo da sua aplicação.<br/>
 Link: https://fkhadra.github.io/react-toastify/installation
