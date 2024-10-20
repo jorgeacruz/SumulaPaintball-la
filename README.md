@@ -10,6 +10,11 @@ O sistema contêm Estoque de Insumos, Financeiro e venda avulsa.
 
 ## Bibliotecas
 
+### Reac-Icons
+Inclua ícones populares em seus projetos React facilmente com react-icons, que utiliza importações ES6 que permitem incluir apenas os ícones que seu projeto está usando.
+<br/>
+link: https://react-icons.github.io/react-icons/
+
 ### React-toastify
 Permite adicionar notificações personalizadas em aplicações React. Suporta diversos tipos de mensagens, como sucesso, erro e informações, e é altamente configurável para se adaptar ao estilo da sua aplicação.<br/>
 Link: https://fkhadra.github.io/react-toastify/installation
