@@ -11,10 +11,12 @@ export default function Financeiro() {
  return (
    <section className="p-4 w-full h-screen flex flex-col items-center">
     
-     <div className="flex flex-col lg:flex-row justify-center items-center w-1/2">
+    <div className="gap-2 flex flex-col lg:flex-row justify-center items-center w-auto">
+        
         <h1 className="text-white text-3xl text-center m-5">Departamento Financeiro</h1>
         
-        <div className="w-1/2">
+        <div className="w-auto">
+
             <Datepicker
                 displayFormat="DD/MM/YYYY"
                 placeholder="Selecione a data"
@@ -38,9 +40,14 @@ export default function Financeiro() {
                         apply: "Aplicar"
                     }
                 }}
+                inputClassName="w-[300px] p-2 bg-black rounded-md placeholder:text-white text-center m-3 border border-gray-400 "
             />
+            
         </div>
-     </div>
+        <button className="bg-white hover:bg-secondary duration-300 w-[300px] p-2 rounded-sm">
+                <span className="text-black">Imprimir Relatório</span>
+        </button>
+    </div>
 
             <table className="w-full flex flex-col">
                 <thead className="bg-primary text-black">
