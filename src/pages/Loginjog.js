@@ -31,7 +31,7 @@ function Loginjog() {
           progress: undefined,
           theme: "light",
         });
-        navigate("");
+        navigate("/cadequipe");
     } else {
       toast.error('Usuário ou senha incorretos!', {
         position: "top-right",

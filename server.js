@@ -359,6 +359,19 @@ app.get('/estoque/bolinhas', (req, res) => {
     res.json({ quantidade: result[0].quantidade });
   });
 });
+app.post('/cadastrar', (req, res) => {
+  const { nome, email, telefone, idade } = req.body;
+  const query = `INSERT INTO time (nome, email, telefone, idade) VALUES (?, ?, ?, ?)`;
+
+  db.query(query, [nome, email, telefone, idade], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erro ao salvar dados');
+    } else {
+      res.status(200).send('Dados salvos com sucesso');
+    }
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

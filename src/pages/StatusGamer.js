@@ -8,39 +8,39 @@ export default function StatusGame() {
   const [jogo, setJogo] = useState({});
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
   const [bolinhas, setBolinhas] = useState(null);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Estado para controlar o modal
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false); 
   const navigate = useNavigate();
 
-   // Variável local para armazenar o valor total das vendas avulsas
+  
    let valorTotalVendasAvulsas = 0;
 
-   // Função para calcular o valor total das vendas avulsas
+   
    const calcularValorTotalVendasAvulsas = () => {
-     valorTotalVendasAvulsas = 0; // Reseta o valor total antes de somar novamente
+     valorTotalVendasAvulsas = 0; 
  
-     // Percorre os jogadores e soma apenas os itens de venda avulsa
+     
      jogadores.forEach(jogador => {
-       if (!jogador.isClosed) { // Verifica apenas jogadores que não fecharam o pedido
+       if (!jogador.isClosed) { 
          jogador.items.forEach(item => {
-           if (item.tipo === 'venda avulsa') { // Verifica se o item é de venda avulsa
-             valorTotalVendasAvulsas += item.valor; // Soma o valor do item
+           if (item.tipo === 'venda avulsa') { 
+             valorTotalVendasAvulsas += item.valor;
            }
          });
        }
      });
    };
-  const calcularValorTotalCompras = () => {
-    return jogadores
-      .filter(jogador => jogador.isClosed) // Filtrar jogadores que fecharam o pedido
-      .reduce((total, jogador) => {
-        const valorTotalJogador = jogador.items.reduce((sum, item) => sum + item.valor, 0);
-        return total + valorTotalJogador; // Somar o valor total de cada jogador fechado
-      }, 0); // Valor inicial do total é 0
-  };
+ // const calcularValorTotalCompras = () => {
+ //   return jogadores
+ //     .filter(jogador => jogador.isClosed) 
+ //     .reduce((total, jogador) => {
+ //       const valorTotalJogador = jogador.items.reduce((sum, item) => sum + item.valor, 0);
+ //       return total + valorTotalJogador;
+ //     }, 0); 
+ // };
   useEffect(() => {
     const interval = setInterval(() => {
-      calcularValorTotalVendasAvulsas(); // Atualiza o valor total das vendas avulsas
-    }, 5000); // Atualiza a cada 5 segundos
+      calcularValorTotalVendasAvulsas(); 
+    }, 5000);
 
     return () => clearInterval(interval); // Limpa o intervalo ao desmontar o componente
   }, [jogadores]);
@@ -85,20 +85,18 @@ export default function StatusGame() {
   // Contar jogadores ativos (cards não fechados)
   const jogadoresAtivos = jogadores.filter(jogador => !jogador.isClosed).length;
 
-  // Contar jogadores inativos (cards fechados)
   const jogadoresInativos = jogadores.filter(jogador => jogador.isClosed).length;
 
   const handleFecharPartida = () => {
     setShowConfirmationModal(true);
   };
 
-  // Função para confirmar o fechamento da partida e redirecionar
+  
   const confirmCloseGame = () => {
     setShowConfirmationModal(false);
     navigate('/resumogame');
   };
 
-  // Função para cancelar o fechamento da partida
   const cancelCloseGame = () => {
     setShowConfirmationModal(false);
   };
