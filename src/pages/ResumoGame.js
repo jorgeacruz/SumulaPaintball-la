@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function ResumoGame() {
     const navigate = useNavigate();
@@ -71,6 +72,23 @@ export default function ResumoGame() {
     };
 
     const fecharPartida = () => {
+        const totalArrecadado = Object.values(formasPagamento).reduce((acc, val) => acc + val, 0) + totalAvulso;
+        const dataFinanceira = {
+        dataJogo: jogo.data,
+        totalJogadores: pagamentos.length,
+        formasPagamento,
+        totalAvulso,
+        totalArrecadado
+    };
+
+    axios.post('http://localhost:5000/financeiro', dataFinanceira)
+    .then(() => {
+        console.log('Dados financeiros enviados com sucesso');
+    })
+    .catch(error => {
+        console.error('Erro ao enviar dados financeiros:', error);
+    });
+
         localStorage.removeItem('pagamentos');
         localStorage.removeItem('totalAvulso');
         localStorage.removeItem('dataJogo');

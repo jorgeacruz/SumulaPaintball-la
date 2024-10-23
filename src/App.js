@@ -15,8 +15,9 @@ import StatusGame from './pages/StatusGamer';
 import ResumoGame from './pages/ResumoGame';
 import PrivateRoute from './pages/Privateroute';
 import CadEquipe from './pages/CadastroEquipe.js';
+import Financeiro from './pages/Financeiro.js';
 import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // 
+import 'react-toastify/dist/ReactToastify.css'; 
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -131,6 +132,7 @@ function App() {
         <Route path="/statusgame" element={<PrivateRoute role={['admin', 'operador']}><StatusGame /></PrivateRoute>} />
         <Route path="/resumogame" element={<PrivateRoute role={['admin', 'operador']}><ResumoGame/></PrivateRoute>}/>
         <Route path="/cadequipe" element={<PrivateRoute role={['admin', 'operador']}><CadEquipe/></PrivateRoute>}/>
+        <Route path="/financeiro" element={<PrivateRoute role={['admin', 'operador']}><Financeiro/></PrivateRoute>}/>
       </Routes>
     </Router>
   );

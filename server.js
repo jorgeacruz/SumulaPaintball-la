@@ -86,7 +86,17 @@ app.post('/addjogo', (req, res) => {
     res.send({ success: true, message: 'Jogo adicionado com sucesso' });
   });
 });
-
+app.get('/jogos', (req, res) => {
+  const query = 'SELECT * FROM jogos';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar jogos:', err);
+      res.status(500).send('Erro no servidor');
+    } else {
+      res.json(results);
+    }
+  });
+});
 app.post('/cadastro', (req, res) => {
   const { username, email, cpf, telefone, senha } = req.body;
   const query = 'INSERT INTO jogadores (username, email, cpf, telefone, senha) VALUES (?, ?, ?, ?, ?)';
@@ -344,7 +354,19 @@ app.post('/pedidos', (req, res) => {
     }
   });
 });
+app.get('/pedidos', (req, res) => {
+  const data = req.query.data; 
+  const query = 'SELECT * FROM pedidos WHERE DATE(data_pedido) = ?';
 
+  db.query(query, [data], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar pedidos:', err);
+      res.status(500).send('Erro no servidor');
+    } else {
+      res.json(results); 
+    }
+  });
+});
 
 app.get('/estoque/bolinhas', (req, res) => {
   const query = 'SELECT quantidade FROM estoque WHERE nome = "bolinhas"';
@@ -369,6 +391,47 @@ app.post('/cadastrar', (req, res) => {
     } else {
       res.status(200).send('Dados salvos com sucesso');
     }
+  });
+});
+app.post('/financeiro', (req, res) => {
+  const { dataJogo, totalJogadores, formasPagamento, totalAvulso, totalArrecadado } = req.body;
+
+  const query = `
+    INSERT INTO financeiro (data_jogo, total_jogadores, credito, debito, dinheiro, pix, avulso, total_arrecadado)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    query, 
+    [
+      dataJogo,
+      totalJogadores,
+      formasPagamento.credito,
+      formasPagamento.debito,
+      formasPagamento.dinheiro,
+      formasPagamento.pix,
+      totalAvulso,
+      totalArrecadado
+    ], 
+    (err, result) => {
+      if (err) {
+        console.error('Erro ao inserir dados financeiros:', err);
+        return res.status(500).send('Erro no servidor');
+      }
+      res.send('Dados financeiros inseridos com sucesso');
+    }
+  );
+});
+app.get('/financeiro', (req, res) => {
+  const data = req.query.data; 
+  const query = 'SELECT * FROM financeiro WHERE DATE(data_jogo) = ?';
+
+  db.query(query, [data], (err, results) => {
+    if (err) {
+      console.error("Erro ao consultar dados financeiros:", err);
+      return res.status(500).send(err);
+    }
+    res.json(results);
   });
 });
 

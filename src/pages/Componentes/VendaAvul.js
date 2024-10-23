@@ -282,6 +282,7 @@ export default function CardJogador() {
               onChange={(e) => handlePaymentSelection(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md mb-4"
             >
+              <option value="">Selecione</option>
               <option value="dinheiro">Dinheiro</option>
               <option value="credito">Crédito</option>
               <option value="debito">Debito</option>
