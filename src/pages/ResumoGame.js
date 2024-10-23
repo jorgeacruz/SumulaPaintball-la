@@ -6,7 +6,8 @@ export default function ResumoGame() {
     const [jogo, setJogo] = useState({});
     const [pagamentos, setPagamentos] = useState([]);
     const [formasPagamento, setFormasPagamento] = useState({
-        cartao: 0,
+        credito: 0,
+        debito: 0,
         dinheiro: 0,
         avulso: 0,
         pix: 0,
@@ -38,7 +39,8 @@ export default function ResumoGame() {
             }
             return acc;
         }, {
-            cartao: 0,
+            credito: 0,
+            debito: 0,
             dinheiro: 0,
             avulso: 0,
             pix: 0,
@@ -95,8 +97,12 @@ export default function ResumoGame() {
                     <h1 className="text-2xl font-bold">Formas de pagamento</h1>
                     <div className="w-full px-3">
                         <div className="flex flex-row justify-around items-start">
-                            <p className="text-xl font-semibold">Cartão</p>
-                            <p id="cartao">R${formasPagamento.cartao.toFixed(2)}</p>
+                            <p className="text-xl font-semibold">Crédito</p>
+                            <p id="credito">R${formasPagamento.credito.toFixed(2)}</p>
+                        </div>
+                        <div className="flex flex-row justify-around items-start">
+                            <p className="text-xl font-semibold">Debito</p>
+                            <p id="debito">R${formasPagamento.debito.toFixed(2)}</p>
                         </div>
                         <div className="flex flex-row justify-around items-start">
                             <p className="text-xl font-semibold">Dinheiro</p>

@@ -140,14 +140,17 @@ export default function CardJogador() {
       if (!podeFechar) {
         console.error('Não foi possível fechar o pedido devido à quantidade insuficiente no estoque.');
       } else {
-        const storedData = localStorage.getItem('dataJogo');
+        const dataJogo = localStorage.getItem('dataJogo');
+        const horaJogo = localStorage.getItem('horaJogo');
+
+        const dataHoraJogo = `${dataJogo} ${horaJogo}:00`;
 
         axios.post('http://localhost:5000/pedidos', {
           nomeJogador: jogador.nome,
           items: jogador.items,
           formaPagamento: selectedPayment,
           valorTotal: valorTotalJogador,
-          dataJogo: storedData,  
+          dataJogo: dataHoraJogo,   
         })
         .then(() => console.log('Pedido e pagamento cadastrados com sucesso!'))
         .catch(error => console.error('Erro ao cadastrar pedido:', error));
@@ -279,9 +282,9 @@ export default function CardJogador() {
               onChange={(e) => handlePaymentSelection(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md mb-4"
             >
-              <option value="">Selecione</option>
               <option value="dinheiro">Dinheiro</option>
-              <option value="cartao">Cartão</option>
+              <option value="credito">Crédito</option>
+              <option value="debito">Debito</option>
               <option value="pix">PIX</option>
             </select>
             <div className="flex justify-between mt-4">
