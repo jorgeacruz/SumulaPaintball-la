@@ -3,6 +3,8 @@ import VendaAvulsa from './Componentes/VendaAvul';
 import CardJog from './Componentes/Cardjog';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+// icons
+import { FaPlus } from "react-icons/fa6";
 
 export default function StatusGame() {
   const [jogo, setJogo] = useState({});
@@ -138,9 +140,24 @@ export default function StatusGame() {
       </div>
     </section>
     <div className="flex justify-end mt-auto">
+    
+          <button //botão plus jogador
+          className="bg-primary hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center">
+              <FaPlus size={30}/> 
+          </button>
+          <button // botão plus Venda Avulso
+          className="bg-blue-600 hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center">
+              <FaPlus size={30}/> 
+          </button>
+          <button // botão despesas
+          className="bg-red-600 hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center">
+              <FaPlus size={30}/> 
+          </button>
+
+
         <button 
           onClick={handleFecharPartida}  // Abre o modal de confirmação
-          className="mt-4 mb-4 rounded-md w-[300px] h-[40px] bg-primary flex justify-center items-center hover:bg-red-500 transition-colors"
+          className="mt-4 mb-4 rounded-md w-[150px] h-[40px] bg-primary flex justify-center items-center hover:bg-red-500 transition-colors"
         >
           <p>Fechar Partida</p>
         </button>
