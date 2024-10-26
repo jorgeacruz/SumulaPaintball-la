@@ -178,7 +178,7 @@ export default function CardJogador() {
         const valorTotalJogador = jogador.items.reduce((sum, item) => sum + item.valor, 0);
         return (
           <section key={index} className={`w-[300px] h-auto rounded-lg bg-white ${jogador.isClosed ? 'opacity-50 pointer-events-none' : ''}`}>
-            <header className="bg-secondary w-full p-3 rounded-t-lg gap-2 flex flex-col justify-center items-center text-black font-normal md:flex-col md:justify-between">
+            <header className="bg-blue-600 w-full p-3 rounded-t-lg gap-2 flex flex-col justify-center items-center text-black font-normal md:flex-col md:justify-between">
               <p className="text-black">Venda Avulsa</p>
               <div className="flex flex-col justify-center items-center gap-2 md:flex-row md:justify-between">
                 <input
