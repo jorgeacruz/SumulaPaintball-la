@@ -38,6 +38,9 @@ function NavBar() {
               <Link to="/estoque" className="text-white hover:text-primary duration-150">Estoque</Link>
             </li>
             <li>
+              <Link to="/estoque" className="text-white hover:text-primary duration-150">Pre-Agendado</Link>
+            </li>
+            <li>
               <button onClick={handleLogout} className="text-white hover:text-primary duration-150">
                 Sair do sistema
               </button>
