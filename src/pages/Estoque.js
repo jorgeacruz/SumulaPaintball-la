@@ -3,6 +3,10 @@ import axios from 'axios';
 import NavBar from '../pages/Componentes/Navbar';
 import { useNavigate } from 'react-router-dom';
 
+//icons
+import { FaPlus } from "react-icons/fa6";
+import { FaRegEdit } from "react-icons/fa";
+
 export default function Estoque() {
   const navigate = useNavigate();
   const [estoque, setEstoque] = useState([]);
@@ -147,6 +151,31 @@ export default function Estoque() {
             </button>
           </div>
         </div>
+
+        {
+          /*
+            Desconto Programado
+          */
+        }
+          <div className="w-full h-auto bg-red-600 rounded-sm flex flex-col p-5 items-center justify-center mb-5 ">
+                    <h2 className="font-bold mb-5 text-white">Desconto Programado</h2>
+                    <div className="flex flex-col md:flex-row items-center justify-center">
+                      <input id="NomeProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Nome do Desconto" />
+                      <input id="valorProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Percentagem do desconto" />
+
+                      <button id="AddEstoque" className="bg-primary hover:bg-green-500 duration-200 w-auto p-3 h-10 rounded-md flex items-center justify-center" >
+                        <FaPlus/> Adicionar
+                      </button>
+                      <button id="RemoveEstoque" className="bg-red-600  hover:bg-black text-white duration-200 w-auto p-3 h-10 rounded-md flex items-center justify-center m-3" >
+                      <FaRegEdit/> Editar
+                      </button>
+                    </div>
+              </div>
+        {
+          /*
+            Desconto Programado
+          */
+        }
 
         <div className="bg-primary w-full max-w-4xl rounded-sm flex flex-col p-5 items-center justify-center">
           <h2 className="text-black font-bold mb-5">Estoque Atual</h2>
