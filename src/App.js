@@ -16,6 +16,8 @@ import ResumoGame from './pages/ResumoGame';
 import PrivateRoute from './pages/Privateroute';
 import CadEquipe from './pages/CadastroEquipe.js';
 import Financeiro from './pages/Financeiro.js';
+import PreAgendado from './pages/PreAgendado.js';
+import CardDespesas from './pages/Componentes/CardDespesas.js';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 
@@ -129,10 +131,12 @@ function App() {
         <Route path="/addjogo" element={<PrivateRoute role={['admin', 'operador']}><AddJogo /></PrivateRoute>} />
         <Route path="/cardjogador" element={<CardJogador />} />
         <Route path="/vendaavulsa" element={<CardVendaAvulsa />} />
+        <Route path="/carddespesas" element={<CardDespesas />} />
         <Route path="/statusgame" element={<PrivateRoute role={['admin', 'operador']}><StatusGame /></PrivateRoute>} />
         <Route path="/resumogame" element={<PrivateRoute role={['admin', 'operador']}><ResumoGame/></PrivateRoute>}/>
         <Route path="/cadequipe" element={<PrivateRoute role={['admin', 'operador']}><CadEquipe/></PrivateRoute>}/>
-        <Route path="/financeiro" element={<PrivateRoute role={['admin', 'operador']}><Financeiro/></PrivateRoute>}/>
+        <Route path="/financeiro" element={<PrivateRoute role={['admin']}><Financeiro/></PrivateRoute>}/>
+        <Route path="/preagenda" element={<PrivateRoute role={['admin']}><PreAgendado/></PrivateRoute>}/>
       </Routes>
     </Router>
   );

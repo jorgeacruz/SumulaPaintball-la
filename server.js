@@ -319,10 +319,10 @@ app.get('/estoque/:nome', (req, res) => {
   });
 });
 app.post('/pedidos', (req, res) => {
-  const { nomeJogador, items, formaPagamento, valorTotal,  dataJogo  } = req.body;  
- 
-  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total, data_pedido) VALUES (?, ?, ?, ?)';  
-  db.query(queryPedido, [nomeJogador, formaPagamento, valorTotal, dataJogo], (err, result) => {
+  const { nomeJogador, items, formaPagamento, valorTotal,  dataPedido  } = req.body;  // Recebendo o valor total
+
+  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total, data_pedido) VALUES (?, ?, ?, ?)';  // Incluindo o valor total
+  db.query(queryPedido, [nomeJogador, formaPagamento, valorTotal, dataPedido], (err, result) => {
     if (err) {
       console.error('Erro ao cadastrar pedido:', err);
       res.status(500).send('Erro no servidor');
@@ -380,17 +380,77 @@ app.get('/estoque/bolinhas', (req, res) => {
     res.json({ quantidade: result[0].quantidade });
   });
 });
-app.post('/cadastrar', (req, res) => {
-  const { nome, email, telefone, idade } = req.body;
-  const query = `INSERT INTO time (nome, email, telefone, idade) VALUES (?, ?, ?, ?)`;
+app.post('/cadastrar', async (req, res) => {
+  const { nome_equipe, jogadores } = req.body;
 
-  db.query(query, [nome, email, telefone, idade], (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send('Erro ao salvar dados');
-    } else {
-      res.status(200).send('Dados salvos com sucesso');
+  if (!nome_equipe || !jogadores || jogadores.length === 0) {
+    return res.status(400).send('Nome da equipe e jogadores são obrigatórios.');
+  }
+
+  // Inserir a equipe e obter o ID gerado
+  const equipeSql = 'INSERT INTO equipes (nome_equipe) VALUES (?)';
+  db.query(equipeSql, [nome_equipe], (error, results) => {
+    if (error) {
+      console.error('Erro ao inserir equipe:', error);
+      return res.status(500).send('Erro ao cadastrar equipe.');
     }
+
+    const teamId = results.insertId; // ID da equipe recém-criada
+
+    let erroAoInserir = false;
+
+    jogadores.forEach((jogador, index) => {
+      const { nome, email, telefone } = jogador;
+      const sql = 'INSERT INTO jogadores (username, email, telefone, team_id) VALUES (?, ?, ?, ?)';
+      db.query(sql, [nome, email, telefone, teamId], (error) => {
+        if (error) {
+          console.error('Erro ao inserir jogador:', error);
+          erroAoInserir = true;
+        }
+
+        // Após a última iteração, envie a resposta
+        if (index === jogadores.length - 1) {
+          if (erroAoInserir) {
+            return res.status(500).send('Erro ao cadastrar jogadores.');
+          } else {
+            return res.status(200).send('Equipe e jogadores cadastrados com sucesso.');
+          }
+        }
+      });
+    });
+  });
+});
+app.get('/equipes', (req, res) => {
+  const sql = `
+    SELECT e.team_id AS equipe_id, e.nome_equipe AS nomeEquipe, 
+           j.username AS nomeJogador, j.telefone AS contato
+    FROM equipes e
+    LEFT JOIN jogadores j ON e.team_id = j.team_id
+    WHERE j.id = (
+      SELECT MIN(id)
+      FROM jogadores
+      WHERE team_id = e.team_id
+    )
+  `;
+  
+  db.query(sql, (error, results) => {
+    if (error) {
+      console.error('Erro ao buscar equipes:', error);
+      return res.status(500).send('Erro ao buscar equipes.');
+    }
+    res.json(results);
+  });
+});
+app.get('/equipes/:team_id/jogadores', (req, res) => {
+  const { team_id } = req.params;
+  const sql = 'SELECT username AS nomeJogador, telefone AS contato FROM jogadores WHERE team_id = ?';
+
+  db.query(sql, [team_id], (error, results) => {
+    if (error) {
+      console.error('Erro ao buscar jogadores:', error);
+      return res.status(500).send('Erro ao buscar jogadores.');
+    }
+    res.json(results); 
   });
 });
 app.post('/financeiro', (req, res) => {
@@ -429,6 +489,33 @@ app.get('/financeiro', (req, res) => {
   db.query(query, [data], (err, results) => {
     if (err) {
       console.error("Erro ao consultar dados financeiros:", err);
+      return res.status(500).send(err);
+    }
+    res.json(results);
+  });
+});
+app.post('/descontos', (req, res) => {
+  const { nome, valor } = req.body;
+  const sql = 'INSERT INTO descontos (nome, valor) VALUES (?, ?)';
+  
+  db.query(sql, [nome, valor], (err, result) => {
+    if (err) throw err;
+    res.json({ message: 'Desconto adicionado com sucesso', id: result.insertId });
+  });
+});
+app.get('/descontos', (req, res) => {
+  db.query('SELECT * FROM descontos', (err, result) => {
+    if (err) throw err;
+    res.json(result);
+  });
+});
+
+app.delete('/descontos/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM descontos WHERE id = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Erro ao remover desconto do estoque:', err);
       return res.status(500).send(err);
     }
     res.json(results);

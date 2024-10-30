@@ -7,17 +7,17 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 
 export default function CadEquipe() {
+  const [nomeEquipe, setNomeEquipe] = useState(''); // Nome da equipe
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [idade, setIdade] = useState('');
   const [jogadores, setJogadores] = useState([]); 
   const [editIndex, setEditIndex] = useState(null); 
   const navigate = useNavigate();
 
   const handleAdd = () => {
-    if (nome && email && telefone && idade) {
-      const novoJogador = { nome, email, telefone, idade };
+    if (nome && email && telefone) {
+      const novoJogador = { nome, email, telefone };
 
       if (editIndex !== null) {
         const jogadoresAtualizados = [...jogadores];
@@ -31,30 +31,30 @@ export default function CadEquipe() {
       setNome('');
       setEmail('');
       setTelefone('');
-      setIdade('');
     } else {
       alert('Preencha todos os campos antes de adicionar.');
     }
   };
 
-  
   const handleEdit = (index) => {
     const jogador = jogadores[index];
     setNome(jogador.nome);
     setEmail(jogador.email);
     setTelefone(jogador.telefone);
-    setIdade(jogador.idade);
     setEditIndex(index); 
   };
 
- 
   const handleDelete = (index) => {
     const jogadoresAtualizados = jogadores.filter((_, i) => i !== index);
     setJogadores(jogadoresAtualizados);
   };
 
-  
   const handleSubmit = async () => {
+    if (!nomeEquipe) {
+      alert('Preencha o nome da equipe antes de finalizar o cadastro.');
+      return;
+    }
+
     if (jogadores.length === 0) {
       alert('Adicione pelo menos um jogador antes de finalizar o cadastro.');
       return;
@@ -66,8 +66,9 @@ export default function CadEquipe() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ jogadores }), 
+        body: JSON.stringify({ nome_equipe: nomeEquipe, jogadores }),
       });
+
       if (response.ok) {
         toast('Cadastro da equipe realizado com sucesso', {
           position: "top-right",
@@ -79,12 +80,14 @@ export default function CadEquipe() {
           progress: undefined,
           theme: "light",
         });
-        setJogadores([]); 
+        setJogadores([]);
+        setNomeEquipe(''); 
         setTimeout(() => {
-          navigate("/estoque"); 
+          navigate("/estoque");
         }, 5000);
       } else {
-        toast.error('Erro ao realizar cadastro', {
+        const errorData = await response.json(); // Captura a resposta de erro
+        toast.error(`Erro ao realizar cadastro: ${errorData.message || 'Erro desconhecido'}`, {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -108,7 +111,16 @@ export default function CadEquipe() {
         <h2 className="text-white">Adicione todos os jogadores da sua equipe</h2>
         <h2 className="text-red-600">Depois de cadastrar todos os jogadores, clique em finalizar cadastro.</h2>
       </div>
-      
+
+      {/* Campo para o nome da equipe */}
+      <input 
+        type="text" 
+        placeholder="Nome da Equipe" 
+        value={nomeEquipe}
+        onChange={(e) => setNomeEquipe(e.target.value)}
+        className="text-center rounded-sm p-2 mb-4"
+      />
+
       <div id="cadEquipe" className="p-1 w-full flex flex-col lg:flex-row justify-center items-center gap-2">
         <input 
           type="text" 
@@ -131,57 +143,51 @@ export default function CadEquipe() {
           onChange={(e) => setTelefone(e.target.value)}
           className="text-center rounded-sm p-2"
         />
-        <input 
-          type="text" 
-          placeholder="Idade do Jogador" 
-          value={idade}
-          onChange={(e) => setIdade(e.target.value)}
-          className="text-center rounded-sm p-2"
-        />
 
         <button 
           className="w-[220px] lg:w-10 h-10 rounded-sm bg-primary hover:bg-green-600 duration-300 p-2 flex justify-center items-center"
           onClick={handleAdd}
         >
-          <FaPlus size={20} />
+          <FaPlus size={20} className="text-white" />
         </button>
       </div>
 
-      <div className="flex-grow overflow-y-auto text-white p-1 gap-3 w-full flex flex-col justify-start items-center">
-        {/* Exibir lista de jogadores cadastrados */}
-        {jogadores.map((jogador, index) => (
-          <div key={index} className="flex justify-between w-4/6 items-center">
-            <span>{jogador.nome}</span>
-            <span>{jogador.email}</span>
-            <span>{jogador.telefone}</span>
-            <span>{jogador.idade} anos</span>
-
-            <div className="flex gap-2">
-              <button 
-                className="w-[220px] lg:w-10 h-10 rounded-sm bg-white hover:bg-secondary duration-300 p-2 flex justify-center items-center"
-                onClick={() => handleEdit(index)} // Edição do jogador
-              >
-                <FaEdit color="#000" size={15} />
-              </button>
-              <button 
-                className="w-[220px] lg:w-10 h-10 rounded-sm bg-white hover:bg-primary duration-300 p-2 flex justify-center items-center"
-                onClick={() => handleDelete(index)} // Exclusão do jogador
-              >
-                <FaTrashAlt color="#000" size={15} />
-              </button>
-            </div>
-          </div>
-        ))}
+      <div className="flex-grow overflow-y-auto text-white bg-black p-1 gap-3 w-full flex flex-col justify-start items-center">
+        <table className="table-auto w-full text-left bg-black text-white rounded-md">
+          <thead className="bg-primary">
+            <tr>
+              <th className="p-2">Nome</th>
+              <th className="p-2">Email</th>
+              <th className="p-2">Telefone</th>
+              <th className="p-2">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {jogadores.map((jogador, index) => (
+              <tr key={index}>
+                <td className="p-2">{jogador.nome}</td>
+                <td className="p-2">{jogador.email}</td>
+                <td className="p-2">{jogador.telefone}</td>
+                <td className="p-2 flex gap-2">
+                  <button onClick={() => handleEdit(index)} className="bg-yellow-400 hover:bg-yellow-500 p-1 rounded">
+                    <FaEdit />
+                  </button>
+                  <button onClick={() => handleDelete(index)} className="bg-red-600 hover:bg-red-700 p-1 rounded">
+                    <FaTrashAlt />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <div className="w-full flex justify-center mt-4">
-        <button 
-          className="w-[220px] lg:w-[220px] h-10 rounded-sm bg-green-600 hover:scale-110 duration-300 p-2 flex justify-center items-center"
-          onClick={handleSubmit}
-        >
-          <span className="text-white">FINALIZAR CADASTRO</span>
-        </button>
-      </div>
+      <button 
+        onClick={handleSubmit}
+        className="mt-4 rounded-sm bg-green-600 text-white px-4 py-2 hover:bg-green-700 duration-300"
+      >
+        Finalizar Cadastro
+      </button>
     </section>
   );
 }

@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NavBar from '../pages/Componentes/Navbar';
 import { useNavigate } from 'react-router-dom';
-
-//icons
 import { FaPlus } from "react-icons/fa6";
 import { FaRegEdit } from "react-icons/fa";
+import { FaTrashAlt } from "react-icons/fa";
 
 export default function Estoque() {
   const navigate = useNavigate();
   const [estoque, setEstoque] = useState([]);
   const [inputs, setInputs] = useState({});
   const [editMode, setEditMode] = useState({});
-  
+  const [descontos, setDescontos] = useState([]);
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('auth');
@@ -30,10 +29,40 @@ export default function Estoque() {
         console.error('Erro ao buscar estoque:', error);
       });
   };
-
+  const fetchDescontos = () => {
+    axios.get('http://localhost:5000/descontos') // Endpoint para buscar descontos
+      .then(response => setDescontos(response.data))
+      .catch(error => console.error('Erro ao buscar descontos:', error));
+  };
+  const removeDesconto = (id) => {
+    console.log(`Tentando excluir desconto com ID: ${id}`); // Log para depuração
+    axios.delete(`http://localhost:5000/descontos/${id}`)
+      .then(response => {
+        console.log(response.data.message);
+        fetchDescontos(); // Atualiza a lista de descontos
+      })
+      .catch(error => {
+        console.error('Erro ao excluir desconto:', error);
+      });
+  };
+  
   useEffect(() => {
     fetchEstoque();
+    fetchDescontos();
   }, []);
+
+  const addDesconto = () => {
+    const nomeDesconto = document.getElementById('NomeDesconto').value;
+    const valorDesconto = document.getElementById('ValorDesconto').value;
+    
+    axios.post('http://localhost:5000/descontos', { nome: nomeDesconto, valor: valorDesconto })
+      .then(response => {
+        fetchDescontos();
+        document.getElementById('NomeDesconto').value = '';
+        document.getElementById('ValorDesconto').value = '';
+      })
+      .catch(error => console.error('Erro ao adicionar desconto:', error));
+  };
 
   const addEstoque = () => {
     const nomeProduto = document.getElementById('NomeProduto').value;
@@ -51,6 +80,17 @@ export default function Estoque() {
         console.error('Erro ao adicionar item ao estoque:', error);
       });
   };
+  const updateDesconto = (id, novoValor) => {
+    axios.put(`http://localhost:5000/descontos/${id}`, { valor: novoValor })
+      .then(() => {
+        fetchDescontos();
+        setInputs(prev => ({ ...prev, [id]: { ...prev[id], valor: '' } }));
+      })
+      .catch(error => {
+        console.error('Erro ao atualizar valor do desconto:', error);
+      });
+  };
+  
 
   const removeEstoque = () => {
     const nomeProduto = document.getElementById('NomeProduto').value;
@@ -157,25 +197,66 @@ export default function Estoque() {
             Desconto Programado
           */
         }
-          <div className="w-full h-auto bg-red-600 rounded-sm flex flex-col p-5 items-center justify-center mb-5 ">
-                    <h2 className="font-bold mb-5 text-white">Desconto Programado</h2>
-                    <div className="flex flex-col md:flex-row items-center justify-center">
-                      <input id="NomeProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Nome do Desconto" />
-                      <input id="valorProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Percentagem do desconto" />
+          <div className="w-full h-auto bg-red-600 rounded-sm flex flex-col p-5 items-center justify-center mb-5">
+          <h2 className="font-bold mb-5 text-white">Desconto Programado</h2>
+          <div className="flex flex-col md:flex-row items-center justify-center">
+            <input id="NomeDesconto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Nome do Desconto" />
+            <input id="ValorDesconto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Percentagem do desconto" />
+            <button className="bg-primary hover:bg-green-500 duration-200 w-auto p-3 h-10 rounded-md flex items-center justify-center" onClick={addDesconto}>
+              <FaPlus /> Adicionar
+            </button>
+          </div>
+        </div>
 
-                      <button id="AddEstoque" className="bg-primary hover:bg-green-500 duration-200 w-auto p-3 h-10 rounded-md flex items-center justify-center" >
-                        <FaPlus/> Adicionar
-                      </button>
-                      <button id="RemoveEstoque" className="bg-red-600  hover:bg-black text-white duration-200 w-auto p-3 h-10 rounded-md flex items-center justify-center m-3" >
-                      <FaRegEdit/> Editar
-                      </button>
-                    </div>
+        <div className="bg-primary w-full max-w-4xl rounded-md shadow-lg flex flex-col p-6 items-center justify-center">
+          <h2 className="text-black font-bold text-lg mb-5">Descontos Programados</h2>
+          
+          <div className="w-full flex justify-between items-center px-4 py-2 border-b border-gray-300 font-semibold text-black">
+            <p className="w-1/3 text-left">Nome</p>
+            <p className="w-2/3 ml-20">Valor</p>
+          </div>
+          
+          {descontos.length > 0 ? (
+            descontos.map((desconto) => (
+              <div
+                key={desconto.id}
+                className="w-full flex justify-between items-center px-4 py-2 border-t border-gray-200"
+              >
+                <p className="w-1/3 text-black font-semibold text-left">{desconto.nome}</p>
+                {editMode[desconto.id] ? (
+                  <input
+                    type="text"
+                    className="text-black font-semibold w-1/3 text-left p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-400"
+                    value={inputs[desconto.id]?.valor || desconto.valor}
+                    onChange={(e) => handleInputChange(desconto.id, 'valor', e.target.value)}
+                    onBlur={() => {
+                      if (inputs[desconto.id]?.valor) {
+                        updateDesconto(desconto.id, inputs[desconto.id].valor);
+                      }
+                    }}
+                  />
+                ) : (
+                  <p className="w-1/3 mr-20 text-black font-semibold ">{desconto.valor}%</p>
+                )}
+                <button
+                  className="text-blue-500 hover:text-blue-700 mx-2"
+                  onClick={() => toggleEditMode(desconto.id)}
+                >
+                  {editMode[desconto.id] ? 'Salvar' : <FaRegEdit />}
+                </button>
+                <button 
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => removeDesconto(desconto.id)}
+                >
+                  <FaTrashAlt />
+                </button>
               </div>
-        {
-          /*
-            Desconto Programado
-          */
-        }
+            ))
+          ) : (
+            <p className="text-black font-semibold">Nenhum desconto cadastrado</p>
+          )}
+        </div>
+
 
         <div className="bg-primary w-full max-w-4xl rounded-sm flex flex-col p-5 items-center justify-center">
           <h2 className="text-black font-bold mb-5">Estoque Atual</h2>

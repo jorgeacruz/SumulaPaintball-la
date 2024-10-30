@@ -13,7 +13,25 @@ export default function ResumoGame() {
         avulso: 0,
         pix: 0,
     });
-    const [totalAvulso, setTotalAvulso] = useState(0);  
+    const [totalAvulso, setTotalAvulso] = useState(0);
+
+    const normalizarFormaPagamento = (forma) => {
+        // Verifica se 'forma' é uma string antes de aplicar 'toLowerCase()'
+        if (typeof forma !== 'string') {
+            return '';
+        }
+    
+        const mapaFormas = {
+            credito: 'credito',
+            debito: 'debito',
+            dinheiro: 'dinheiro',
+            dinehrio: 'dinheiro', // Corrige erro de digitação
+            pix: 'pix',
+            avulso: 'avulso',
+        };
+        return mapaFormas[forma.toLowerCase()] || forma.toLowerCase();
+    };
+
     useEffect(() => {
         const storedData = localStorage.getItem('dataJogo');
         const storedHora = localStorage.getItem('horaJogo');
@@ -31,8 +49,9 @@ export default function ResumoGame() {
         setPagamentos(pagamentosArmazenados);
 
         const totais = pagamentosArmazenados.reduce((acc, pagamento) => {
-            const forma = pagamento.formaPagamento.toLowerCase();
+            const forma = normalizarFormaPagamento(pagamento.formaPagamento); // Normaliza a forma de pagamento
             const valor = parseFloat(pagamento.valorTotal);
+
             if (forma in acc) {
                 acc[forma] += valor;
             } else {
@@ -74,20 +93,20 @@ export default function ResumoGame() {
     const fecharPartida = () => {
         const totalArrecadado = Object.values(formasPagamento).reduce((acc, val) => acc + val, 0) + totalAvulso;
         const dataFinanceira = {
-        dataJogo: jogo.data,
-        totalJogadores: pagamentos.length,
-        formasPagamento,
-        totalAvulso,
-        totalArrecadado
-    };
+            dataJogo: jogo.data,
+            totalJogadores: pagamentos.length,
+            formasPagamento,
+            totalAvulso,
+            totalArrecadado
+        };
 
-    axios.post('http://localhost:5000/financeiro', dataFinanceira)
-    .then(() => {
-        console.log('Dados financeiros enviados com sucesso');
-    })
-    .catch(error => {
-        console.error('Erro ao enviar dados financeiros:', error);
-    });
+        axios.post('http://localhost:5000/financeiro', dataFinanceira)
+        .then(() => {
+            console.log('Dados financeiros enviados com sucesso');
+        })
+        .catch(error => {
+            console.error('Erro ao enviar dados financeiros:', error);
+        });
 
         localStorage.removeItem('pagamentos');
         localStorage.removeItem('totalAvulso');
@@ -139,7 +158,7 @@ export default function ResumoGame() {
                 <div className="grid grid-flow-row md:grid-cols-2 gap-2 mt-3">
                     <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
                         <h1 className="text-white text-2xl font-bold">Avulso</h1>
-                        <h2 id="avulsoTotal" className="text-primary text-3xl font-semibold">R${totalAvulso.toFixed(2)}</h2> 
+                        <h2 id="avulsoTotal" className="text-primary text-3xl font-semibold">R${totalAvulso.toFixed(2)}</h2>
                     </div>
                     <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
                         <h1 className="text-white text-2xl font-bold">Valor da Partida</h1>

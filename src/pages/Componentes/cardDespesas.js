@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Estilos do toastify
+import 'react-toastify/dist/ReactToastify.css'; 
 
 export default function CardDespesas() {
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
@@ -29,7 +29,7 @@ export default function CardDespesas() {
       const updatedJogadores = jogadores.filter((_, i) => i !== index);
       setJogadores(updatedJogadores);
     } else {
-      toast.error('Deve haver pelo menos um jogador na tela.', {
+      toast.error('Deve haver pelo menos um card de despesas na tela.', {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -176,7 +176,7 @@ export default function CardDespesas() {
         return (
           <section key={index} className={`w-[300px] h-auto rounded-lg bg-white ${jogador.isClosed ? 'opacity-50 pointer-events-none' : ''}`}>
             <header className="bg-secondary w-full p-3 rounded-t-lg gap-2 flex flex-col justify-center items-center text-black font-normal md:flex-col md:justify-between">
-              <p className="text-black">Venda Avulsa</p>
+              <p className="text-black">Despesas</p>
               <div className="flex flex-col justify-center items-center gap-2 md:flex-row md:justify-between">
                 <input
                   type="text"
@@ -281,7 +281,8 @@ export default function CardDespesas() {
             >
               <option value="">Selecione</option>
               <option value="dinheiro">Dinheiro</option>
-              <option value="cartao">Cartão</option>
+              <option value="credito">Crédito</option>
+              <option value="debito">Debito</option>
               <option value="pix">PIX</option>
             </select>
             <div className="flex justify-between mt-4">

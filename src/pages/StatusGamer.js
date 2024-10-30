@@ -1,6 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import VendaAvulsa from './Componentes/VendaAvul';
 import CardJog from './Componentes/Cardjog';
+import CardDespesas from './Componentes/CardDespesas';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 // icons
@@ -9,6 +11,7 @@ import { FaPlus } from "react-icons/fa6";
 export default function StatusGame() {
   const [jogo, setJogo] = useState({});
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
+  const [vendas, setVendas] = useState([{ numero: '1' }]);
   const [bolinhas, setBolinhas] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false); 
   const navigate = useNavigate();
@@ -31,14 +34,7 @@ export default function StatusGame() {
        }
      });
    };
- // const calcularValorTotalCompras = () => {
- //   return jogadores
- //     .filter(jogador => jogador.isClosed) 
- //     .reduce((total, jogador) => {
- //       const valorTotalJogador = jogador.items.reduce((sum, item) => sum + item.valor, 0);
- //       return total + valorTotalJogador;
- //     }, 0); 
- // };
+
   useEffect(() => {
     const interval = setInterval(() => {
       calcularValorTotalVendasAvulsas(); 
@@ -77,7 +73,14 @@ export default function StatusGame() {
     const newNumero = (jogadores.length + 1).toString();
     setJogadores([...jogadores, { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }]);
   };
-
+  const handleAddVendaAvulsa = () => {
+    const newNumero = (jogadores.length + 1).toString(); // Adicione a lógica de numeração
+    setJogadores([...jogadores, { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }]);
+  };
+  
+  const handleAddDespesas = () => {
+    // Lógica para adicionar uma despesa, similar ao handleAddJogador
+  };
   const handleClosePedido = (index) => {
     const updatedJogadores = [...jogadores];
     updatedJogadores[index].isClosed = !updatedJogadores[index].isClosed;
@@ -102,6 +105,7 @@ export default function StatusGame() {
   const cancelCloseGame = () => {
     setShowConfirmationModal(false);
   };
+  
   return (
     <section className="bg-black text-white min-h-screen w-full h-auto rounded-md p-3 flex flex-col gap-4">
     <section className="bg-black text-white w-full h-auto rounded-md p-3 flex flex-col gap-4">
@@ -136,23 +140,30 @@ export default function StatusGame() {
           handleClosePedido={handleClosePedido}   
         />
         <VendaAvulsa />
+        <CardDespesas />
         
       </div>
     </section>
     <div className="flex justify-end mt-auto">
     
-          <button //botão plus jogador
-          className="bg-primary hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center">
-              <FaPlus size={30}/> 
-          </button>
-          <button // botão plus Venda Avulso
-          className="bg-blue-600 hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center">
-              <FaPlus size={30}/> 
-          </button>
-          <button // botão despesas
-          className="bg-red-600 hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center">
-              <FaPlus size={30}/> 
-          </button>
+    <button // botão para adicionar jogador
+        onClick={handleAddJogador}
+        className="bg-primary hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center"
+      >
+        <FaPlus size={30} />
+      </button>
+      <button // botão para adicionar venda avulsa
+        onClick={handleAddVendaAvulsa}
+        className="bg-blue-600 hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center"
+      >
+        <FaPlus size={30} />
+      </button>
+      <button // botão para adicionar despesas
+        onClick={handleAddDespesas}
+        className="bg-red-600 hover:bg-white duration-300 m-2 w-20 h-20 rounded-full flex justify-center items-center"
+      >
+        <FaPlus size={30} />
+      </button>
 
 
         <button 

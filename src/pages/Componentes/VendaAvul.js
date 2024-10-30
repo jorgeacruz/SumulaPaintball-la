@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 
-export default function CardJogador() {
+export default function VendaAvul() {
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
   const [estoque, setEstoque] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState('');
@@ -19,10 +19,10 @@ export default function CardJogador() {
   useEffect(() => {
     localStorage.setItem('totalAvulso', valorTotalGeral);
   }, [valorTotalGeral]);
-  const handleAddJogador = () => {
-    const newNumero = (jogadores.length + 0).toString();
-    setJogadores([...jogadores, { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }]);
-  };
+  const handleAddVendaAvulsa = () => {
+  const newNumero = (jogadores.length + 1).toString(); // Adicione a lógica de numeração
+  setJogadores([...jogadores, { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }]);
+};
 
   const handleRemoveJogador = (index) => {
     if (jogadores.length > 1) {
@@ -200,7 +200,7 @@ export default function CardJogador() {
                 <div className="inline-flex">
                   <button
                     className="bg-white hover:bg-green-600 text-black py-1 px-2 rounded-l"
-                    onClick={handleAddJogador}
+                    onClick={handleAddVendaAvulsa}
                   >
                     +
                   </button>
