@@ -7,12 +7,8 @@ const mysql = require('mysql2');
 const twilio = require('twilio');
 
 const app = express();
-require('dotenv').config();
-app.use(cors({
-  origin: 'http://www.lapaintball.com.br',
-  methods: ['GET', 'POST', 'DELETE', 'PUT'],
-  allowedHeaders: ['Content-Type', 'Authorization'], 
-}));
+
+app.use(cors());
 app.use(bodyParser.json());
 
 /*const accountSid = 'SEU_ACCOUNT_SID'; // Substitua com seu Account SID
@@ -23,7 +19,7 @@ const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: process.env.DB_NAME 
+  database: process.env.DB_NAME
 });
 
 db.connect(err => {
@@ -31,7 +27,7 @@ db.connect(err => {
     console.error('Erro ao conectar ao banco de dados:', err);
     return;
   }
-  console.log('Conectado ao banco de dados MySQL do kinghost');
+  console.log('Conectado ao banco de dados MySQL');
 });
 
 app.post('/jogador', (req, res) => {
@@ -53,23 +49,28 @@ app.post('/jogador', (req, res) => {
   });
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
+
   const query = 'SELECT * FROM administradores WHERE username = ? AND password = ?';
 
-  db.query(query, [username, password], (err, results) => {
-    if (err) {
-      console.error('Erro ao buscar dados:', err);
-      res.status(500).send('Erro ao buscar dados');
-      return;
-    }
+  try {
+    const [results] = await connection.promise().query(query, [username, password]);
 
     if (results.length > 0) {
-      res.send({ success: true, message: 'Login realizado com sucesso!' });
+      const user = results[0]; // Pegue o primeiro resultado (supondo que o username seja único)
+      res.send({
+        success: true,
+        message: 'Login realizado com sucesso!',
+        role: user.role // Envia o papel do usuário
+      });
     } else {
       res.send({ success: false, message: 'Usuário ou senha incorretos!' });
     }
-  });
+  } catch (err) {
+    console.error('Erro ao buscar dados:', err);
+    res.status(500).send('Erro ao buscar dados');
+  }
 });
 app.post('/addjogo', (req, res) => {
   const {data, hora } = req.body;
@@ -318,9 +319,9 @@ app.get('/estoque/:nome', (req, res) => {
   });
 });
 app.post('/pedidos', (req, res) => {
-  const { nomeJogador, items, formaPagamento, valorTotal,  dataPedido  } = req.body;  
+  const { nomeJogador, items, formaPagamento, valorTotal,  dataPedido  } = req.body;  // Recebendo o valor total
 
-  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total, data_pedido) VALUES (?, ?, ?, ?)';  
+  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total, data_pedido) VALUES (?, ?, ?, ?)';  // Incluindo o valor total
   db.query(queryPedido, [nomeJogador, formaPagamento, valorTotal, dataPedido], (err, result) => {
     if (err) {
       console.error('Erro ao cadastrar pedido:', err);

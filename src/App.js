@@ -25,7 +25,7 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const baseURL = process.env.REACT_APP_API_BASE_URL;
+
 
   const handleLogin = async () => {
     try {
@@ -37,47 +37,39 @@ function Login() {
         body: JSON.stringify({ username, password }), 
       });
 
-      if (!response.ok) {
-        throw new Error('Erro de comunicação com o servidor');
-      }
-
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok) {
         localStorage.setItem('auth', 'true');
-        localStorage.setItem('role', data.role); 
+        localStorage.setItem('role', data.role);
+        
+        console.log('Login bem sucedido:', data);
+        console.log('Role:', data.role);
+        navigate('/estoque');
+        toast.success('Login realizado com sucesso!');
 
-        if (data.role === 'admin') {
-          navigate("/estoque");
-        } else if (data.role === 'usuario') {
-          navigate("/cadjog");
-        } else if (data.role === 'operador') {
-          navigate("/addjogo");
-        }
+        setTimeout(() => {
+          switch(data.role) {
+            case 'admin':
+              navigate('/estoque');
+              break;
+            case 'usuario':
+              navigate('/cadjog');
+              break;
+            case 'operador':
+              navigate('/addjogo');
+              break;
+            default:
+              toast.error('Tipo de usuário não reconhecido');
+          }
+        }, 500);
+
       } else {
-        toast.error('Houve um erro ao tentar fazer login.', {
-          position: "top-right", 
-          autoClose: 5000, 
-          hideProgressBar: false, 
-          closeOnClick: true, 
-          pauseOnHover: true, 
-          draggable: true, 
-          progress: undefined, 
-          theme: "light", 
-        });
+        toast.error(data.message || 'Credenciais inválidas');
       }
     } catch (error) {
       console.error('Erro ao fazer login:', error);
-      toast.error('Houve um erro ao tentar fazer login.', {
-        position: "top-right", 
-        autoClose: 5000, 
-        hideProgressBar: false, 
-        closeOnClick: true, 
-        pauseOnHover: true, 
-        draggable: true, 
-        progress: undefined, 
-        theme: "light", 
-      });
+      toast.error('Erro ao conectar com o servidor');
     }
   };
 
