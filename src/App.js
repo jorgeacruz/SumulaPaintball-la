@@ -25,34 +25,34 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const baseURL = process.env.REACT_APP_API_BASE_URL;
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:5000/login', {
+      const response = await fetch(`http://localhost:5000/login`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password }), 
       });
-  
+
       if (!response.ok) {
         throw new Error('Erro de comunicação com o servidor');
       }
-  
+
       const data = await response.json();
-  
+
       if (data.success) {
         localStorage.setItem('auth', 'true');
-        localStorage.setItem('role', data.role); // Armazena o papel do usuário
-  
-        // Redireciona com base no papel do usuário
+        localStorage.setItem('role', data.role); 
+
         if (data.role === 'admin') {
           navigate("/estoque");
         } else if (data.role === 'usuario') {
           navigate("/cadjog");
         } else if (data.role === 'operador') {
-          navigate("/addjogo"); // Redireciona para uma página sem acesso ao estoque
+          navigate("/addjogo");
         }
       } else {
         toast.error('Houve um erro ao tentar fazer login.', {
@@ -126,7 +126,7 @@ function App() {
         <Route path="/loginjog" element={<PrivateRoute role={['admin', 'usuario', 'operador']}><Loginjog /></PrivateRoute>} />
         <Route path="/Navbar" element={<NavBar />} />
         <Route path="/mudarsenhajog" element={<PrivateRoute role={['admin', 'usuario', 'operador']}><ForgotPassword /></PrivateRoute>} />
-        <Route path="/mudarsenhaadm" element={<PrivateRoute role="admin"><Changepass /></PrivateRoute>} />
+        <Route path="/mudarsenhaadm" element={<Changepass />} />
         <Route path="/estoque" element={<PrivateRoute role="admin"><Estoque /></PrivateRoute>}/>
         <Route path="/addjogo" element={<PrivateRoute role={['admin', 'operador']}><AddJogo /></PrivateRoute>} />
         <Route path="/cardjogador" element={<CardJogador />} />

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import VendaAvulsa from './Componentes/VendaAvul';
 import CardJog from './Componentes/Cardjog';
@@ -11,7 +10,13 @@ import { FaPlus } from "react-icons/fa6";
 export default function StatusGame() {
   const [jogo, setJogo] = useState({});
   const [jogadores, setJogadores] = useState([{ nome: '', numero: '1', items: [], selectedItem: '', isClosed: false }]);
-  const [vendas, setVendas] = useState([{ numero: '1' }]);
+  const [vendasAvulsas, setVendasAvulsas] = useState([{ 
+    nome: '', 
+    numero: '1', 
+    items: [], 
+    selectedItem: '', 
+    isClosed: false 
+  }]);
   const [bolinhas, setBolinhas] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false); 
   const navigate = useNavigate();
@@ -74,8 +79,14 @@ export default function StatusGame() {
     setJogadores([...jogadores, { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }]);
   };
   const handleAddVendaAvulsa = () => {
-    const newNumero = (jogadores.length + 1).toString(); // Adicione a lógica de numeração
-    setJogadores([...jogadores, { nome: '', numero: newNumero, items: [], selectedItem: '', isClosed: false }]);
+    const newNumero = (vendasAvulsas.length + 1).toString();
+    setVendasAvulsas([...vendasAvulsas, { 
+      nome: '', 
+      numero: newNumero, 
+      items: [], 
+      selectedItem: '', 
+      isClosed: false 
+    }]);
   };
   
   const handleAddDespesas = () => {
@@ -139,7 +150,12 @@ export default function StatusGame() {
           handleAddJogador={handleAddJogador} 
           handleClosePedido={handleClosePedido}   
         />
-        <VendaAvulsa />
+        <VendaAvulsa 
+          vendas={vendasAvulsas} 
+          setVendas={setVendasAvulsas} 
+          handleAddVendaAvulsa={handleAddVendaAvulsa} 
+          handleClosePedido={handleClosePedido}
+        />
         <CardDespesas />
         
       </div>

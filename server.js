@@ -7,8 +7,12 @@ const mysql = require('mysql2');
 const twilio = require('twilio');
 
 const app = express();
-
-app.use(cors());
+require('dotenv').config();
+app.use(cors({
+  origin: 'http://www.lapaintball.com.br',
+  methods: ['GET', 'POST', 'DELETE', 'PUT'],
+  allowedHeaders: ['Content-Type', 'Authorization'], 
+}));
 app.use(bodyParser.json());
 
 /*const accountSid = 'SEU_ACCOUNT_SID'; // Substitua com seu Account SID
@@ -19,7 +23,7 @@ const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME 
 });
 
 db.connect(err => {
@@ -27,7 +31,7 @@ db.connect(err => {
     console.error('Erro ao conectar ao banco de dados:', err);
     return;
   }
-  console.log('Conectado ao banco de dados MySQL');
+  console.log('Conectado ao banco de dados MySQL do kinghost');
 });
 
 app.post('/jogador', (req, res) => {
@@ -49,28 +53,23 @@ app.post('/jogador', (req, res) => {
   });
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', (req, res) => {
   const { username, password } = req.body;
-
   const query = 'SELECT * FROM administradores WHERE username = ? AND password = ?';
 
-  try {
-    const [results] = await connection.promise().query(query, [username, password]);
+  db.query(query, [username, password], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar dados:', err);
+      res.status(500).send('Erro ao buscar dados');
+      return;
+    }
 
     if (results.length > 0) {
-      const user = results[0]; // Pegue o primeiro resultado (supondo que o username seja único)
-      res.send({
-        success: true,
-        message: 'Login realizado com sucesso!',
-        role: user.role // Envia o papel do usuário
-      });
+      res.send({ success: true, message: 'Login realizado com sucesso!' });
     } else {
       res.send({ success: false, message: 'Usuário ou senha incorretos!' });
     }
-  } catch (err) {
-    console.error('Erro ao buscar dados:', err);
-    res.status(500).send('Erro ao buscar dados');
-  }
+  });
 });
 app.post('/addjogo', (req, res) => {
   const {data, hora } = req.body;
@@ -319,9 +318,9 @@ app.get('/estoque/:nome', (req, res) => {
   });
 });
 app.post('/pedidos', (req, res) => {
-  const { nomeJogador, items, formaPagamento, valorTotal,  dataPedido  } = req.body;  // Recebendo o valor total
+  const { nomeJogador, items, formaPagamento, valorTotal,  dataPedido  } = req.body;  
 
-  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total, data_pedido) VALUES (?, ?, ?, ?)';  // Incluindo o valor total
+  const queryPedido = 'INSERT INTO pedidos (nome_jogador, forma_pagamento, valor_total, data_pedido) VALUES (?, ?, ?, ?)';  
   db.query(queryPedido, [nomeJogador, formaPagamento, valorTotal, dataPedido], (err, result) => {
     if (err) {
       console.error('Erro ao cadastrar pedido:', err);
@@ -522,7 +521,12 @@ app.delete('/descontos/:id', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT_APP || 5000;
+
+app.listen(PORT, (err) => {
+  if (err) {
+    console.error('Erro ao iniciar o servidor:', err);
+    return;
+  }
   console.log(`Servidor rodando na porta ${PORT}`);
 });
