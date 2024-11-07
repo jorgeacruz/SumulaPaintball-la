@@ -20,59 +20,49 @@ import PreAgendado from './pages/PreAgendado.js';
 import CardDespesas from './pages/Componentes/CardDespesas.js';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
+import { supabase } from './utils/supabase'
 
 function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-
-  const handleLogin = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/login`, { 
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }), 
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('auth', 'true');
-        localStorage.setItem('role', data.role);
-        
-        console.log('Login bem sucedido:', data);
-        console.log('Role:', data.role);
-        navigate('/estoque');
-        toast.success('Login realizado com sucesso!');
-
-        setTimeout(() => {
-          switch(data.role) {
-            case 'admin':
-              navigate('/estoque');
-              break;
-            case 'usuario':
-              navigate('/cadjog');
-              break;
-            case 'operador':
-              navigate('/addjogo');
-              break;
-            default:
-              toast.error('Tipo de usuário não reconhecido');
-          }
-        }, 500);
-
-      } else {
-        toast.error(data.message || 'Credenciais inválidas');
+    const handleLogin = async () => {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
+  
+        if (error) {
+          toast.error(error.message || 'Credenciais inválidas');
+        } else if (data) {
+          localStorage.setItem('auth', 'true');
+          const role = data.user.user_metadata?.role || 'admin';
+          localStorage.setItem('role', role);
+  
+          toast.success('Login realizado com sucesso!');
+          setTimeout(() => {
+            switch(role) {
+              case 'admin':
+                navigate('/estoque');
+                break;
+              case 'usuario':
+                navigate('/cadjog');
+                break;
+              case 'operador':
+                navigate('/addjogo');
+                break;
+              default:
+                toast.error('Tipo de usuário não reconhecido');
+            }
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Erro ao fazer login:', error);
+        toast.error('Erro ao conectar com o servidor');
       }
-    } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      toast.error('Erro ao conectar com o servidor');
-    }
-  };
-
+    };
 
   return (
     <div className='w-full h-screen flex flex-col items-center justify-center bg-black'>
@@ -81,12 +71,12 @@ function Login() {
         <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA'/>
         <h1 className='text-white text-4xl font-bold m-4'>Administradores</h1>
         <input 
-          id="username" 
-          type='text' 
+          id="email" 
+          type='email' 
           className='border border-white p-1 rounded-sm text-center mt-2 w-[250px]' 
-          placeholder='Digite seu nome' 
-          value={username} 
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder='Digite seu email' 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
         />
         <input 
           id="password" 

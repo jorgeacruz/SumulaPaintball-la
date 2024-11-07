@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.5d5d15bc.css",
+    "main.js": "/static/js/main.66fa6f5f.js",
+    "static/js/952.251e1247.chunk.js": "/static/js/952.251e1247.chunk.js",
+    "static/media/logo_la.png": "/static/media/logo_la.9f1b534b89d1026dee3d.png",
+    "index.html": "/index.html",
+    "main.5d5d15bc.css.map": "/static/css/main.5d5d15bc.css.map",
+    "main.66fa6f5f.js.map": "/static/js/main.66fa6f5f.js.map",
+    "952.251e1247.chunk.js.map": "/static/js/952.251e1247.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5d5d15bc.css",
+    "static/js/main.66fa6f5f.js"
+  ]
+}
