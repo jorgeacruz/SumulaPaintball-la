@@ -1,21 +1,36 @@
 import logo from '../images/logo_la.png';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { ToastContainer, toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ClipLoader } from "react-spinners";
 
 function ForgotPassword() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleVerifyUser = async () => {
+    if (!username || !email) {
+      toast.error('Por favor, preencha todos os campos', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/verifyuser', {
+      const response = await fetch('./.netlify/functions/api-verifyuser', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -23,31 +38,75 @@ function ForgotPassword() {
         body: JSON.stringify({ username, email })
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
       const data = await response.json();
 
       if (data.success) {
+        toast.success('Usuário verificado com sucesso!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
         setStep(2);
       } else {
-        toast.warn('Usuário ou email incorretos!');
+        toast.error('Usuário ou email incorretos!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
       }
     } catch (error) {
-      console.error('Erro na solicitação:', error);
-      toast.warn('Erro ao verificar usuário.');
+      toast.error('Erro ao conectar com o servidor. Tente novamente.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleResetPassword = async () => {
-    if (newPassword !== confirmPassword) {
-      toast.warn('As senhas não coincidem.');
+    if (!newPassword || !confirmPassword) {
+      toast.error('Por favor, preencha todos os campos', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
       return;
     }
 
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não coincidem', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/resetpassword', {
+      const response = await fetch('./.netlify/functions/api-resetpassword', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -55,26 +114,50 @@ function ForgotPassword() {
         body: JSON.stringify({ username, email, newPassword })
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Senha alterada com sucesso!');
-        navigate("/loginjog");
+        toast.success('Senha alterada com sucesso!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
+        setTimeout(() => {
+          navigate("/loginjog");
+        }, 2000);
       } else {
-        toast.warn('Erro ao alterar senha.');
+        toast.error('Erro ao alterar senha', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
       }
     } catch (error) {
-      console.error('Erro na solicitação:', error);
-      toast.warn('Erro ao alterar senha.');
+      toast.error('Erro ao conectar com o servidor. Tente novamente.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "light",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className='w-full h-screen bg-black flex items-center justify-center'>
+      <ToastContainer />
       <div className='flex flex-col justify-center items-center'>
         <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA'/>
         {step === 1 ? (
@@ -87,6 +170,7 @@ function ForgotPassword() {
               placeholder='Digite seu nome'
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
             />
             <input 
               id="email" 
@@ -95,11 +179,26 @@ function ForgotPassword() {
               placeholder='Digite seu Email' 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
             <button 
               id="bt-log" 
-              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]' 
-              onClick={handleVerifyUser}>Verificar Usuário</button>
+              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] flex justify-center items-center' 
+              onClick={handleVerifyUser}
+              disabled={loading}
+            >
+              {loading ? (
+                <ClipLoader
+                  color="#000000"
+                  loading={loading}
+                  size={20}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"
+                />
+              ) : (
+                'Verificar Usuário'
+              )}
+            </button>
           </>
         ) : (
           <>
@@ -111,6 +210,7 @@ function ForgotPassword() {
               placeholder='Digite sua nova senha'
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              disabled={loading}
             />
             <input 
               id="confirm-password" 
@@ -119,26 +219,29 @@ function ForgotPassword() {
               placeholder='Confirme sua nova senha'
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading}
             />
             <button 
               id="bt-log" 
-              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]' 
-              onClick={handleResetPassword}>Alterar Senha</button>
+              className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] flex justify-center items-center' 
+              onClick={handleResetPassword}
+              disabled={loading}
+            >
+              {loading ? (
+                <ClipLoader
+                  color="#000000"
+                  loading={loading}
+                  size={20}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"
+                />
+              ) : (
+                'Alterar Senha'
+              )}
+            </button>
           </>
         )}
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-       // theme="light"
-      />
     </div>
   );
 }

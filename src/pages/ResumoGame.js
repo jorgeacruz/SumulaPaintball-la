@@ -1,20 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function ResumoGame() {
     const navigate = useNavigate();
     const [jogo, setJogo] = useState({});
     const [pagamentos, setPagamentos] = useState([]);
     const [formasPagamento, setFormasPagamento] = useState({
-        cartao: 0,
+        credito: 0,
+        debito: 0,
         dinheiro: 0,
         avulso: 0,
         pix: 0,
     });
+    const [totalAvulso, setTotalAvulso] = useState(0);
+
+    const normalizarFormaPagamento = (forma) => {
+        // Verifica se 'forma' é uma string antes de aplicar 'toLowerCase()'
+        if (typeof forma !== 'string') {
+            return '';
+        }
+    
+        const mapaFormas = {
+            credito: 'credito',
+            debito: 'debito',
+            dinheiro: 'dinheiro',
+            dinehrio: 'dinheiro', // Corrige erro de digitação
+            pix: 'pix',
+            avulso: 'avulso',
+        };
+        return mapaFormas[forma.toLowerCase()] || forma.toLowerCase();
+    };
 
     useEffect(() => {
         const storedData = localStorage.getItem('dataJogo');
         const storedHora = localStorage.getItem('horaJogo');
+        const storedTotalAvulso = localStorage.getItem('totalAvulso');  
+        
+        if (storedTotalAvulso) {
+            setTotalAvulso(parseFloat(storedTotalAvulso));
+        }
 
         if (storedData) {
             setJogo({ data: storedData, hora: storedHora });
@@ -23,10 +48,10 @@ export default function ResumoGame() {
         const pagamentosArmazenados = JSON.parse(localStorage.getItem('pagamentos')) || [];
         setPagamentos(pagamentosArmazenados);
 
-        // Calcula o total por forma de pagamento
         const totais = pagamentosArmazenados.reduce((acc, pagamento) => {
-            const forma = pagamento.formaPagamento.toLowerCase();
+            const forma = normalizarFormaPagamento(pagamento.formaPagamento); // Normaliza a forma de pagamento
             const valor = parseFloat(pagamento.valorTotal);
+
             if (forma in acc) {
                 acc[forma] += valor;
             } else {
@@ -34,7 +59,8 @@ export default function ResumoGame() {
             }
             return acc;
         }, {
-            cartao: 0,
+            credito: 0,
+            debito: 0,
             dinheiro: 0,
             avulso: 0,
             pix: 0,
@@ -43,7 +69,6 @@ export default function ResumoGame() {
         setFormasPagamento(totais);
     }, []);
 
-    // Função de impressão
     const imprimirResumo = () => {
         const conteudo = document.getElementById('resumo-partida').innerHTML;
         const janelaImpressao = window.open('', '', 'height=600,width=800');
@@ -66,16 +91,33 @@ export default function ResumoGame() {
     };
 
     const fecharPartida = () => {
-        // Remove cada item individualmente
+        const totalArrecadado = Object.values(formasPagamento).reduce((acc, val) => acc + val, 0) + totalAvulso;
+        const dataFinanceira = {
+            dataJogo: jogo.data,
+            totalJogadores: pagamentos.length,
+            formasPagamento,
+            totalAvulso,
+            totalArrecadado
+        };
+
+        axios.post('./.netlify/functions/api-financeiro', dataFinanceira)
+        .then(() => {
+            console.log('Dados financeiros enviados com sucesso');
+        })
+        .catch(error => {
+            console.error('Erro ao enviar dados financeiros:', error);
+        });
+
         localStorage.removeItem('pagamentos');
+        localStorage.removeItem('totalAvulso');
         localStorage.removeItem('dataJogo');
         localStorage.removeItem('horaJogo');
         
-        navigate('/estoque'); // Redireciona para a página de estoque
+        navigate('/addjogo');
     };
 
     return (
-        <section id="resumo-partida" className="bg-black flex flex-col justify-center items-center pt-10">
+        <section id="resumo-partida" className="bg-black flex flex-col justify-center items-center pt-10 min-h-screen">
             <h1 className="text-white text-3xl font-semibold">Resumo da Partida</h1>
             <div className="w-1/2 h-auto pt-10">
                 <div className="grid grid-flow-row md:grid-cols-2 gap-2">
@@ -93,15 +135,15 @@ export default function ResumoGame() {
                     <div className="w-full px-3">
                         <div className="flex flex-row justify-around items-start">
                             <p className="text-xl font-semibold">Crédito</p>
-                            <p id="cartao">R${formasPagamento.cartao.toFixed(2)}</p>
+                            <p id="credito">R${formasPagamento.credito.toFixed(2)}</p>
                         </div>
                         <div className="flex flex-row justify-around items-start">
-                            <p className="text-xl font-semibold">Débito</p>
+                            <p className="text-xl font-semibold">Debito</p>
+                            <p id="debito">R${formasPagamento.debito.toFixed(2)}</p>
+                        </div>
+                        <div className="flex flex-row justify-around items-start">
+                            <p className="text-xl font-semibold">Dinheiro</p>
                             <p id="dinheiro">R${formasPagamento.dinheiro.toFixed(2)}</p>
-                        </div>
-                        <div className="flex flex-row justify-around items-start">
-                            <p className="text-xl font-semibold">Avulso</p>
-                            <p id="avulso">R${formasPagamento.avulso.toFixed(2)}</p>
                         </div>
                         <div className="flex flex-row justify-around items-start">
                             <p className="text-xl font-semibold">Pix</p>
@@ -112,7 +154,7 @@ export default function ResumoGame() {
                 <div className="grid grid-flow-row md:grid-cols-2 gap-2 mt-3">
                     <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
                         <h1 className="text-white text-2xl font-bold">Avulso</h1>
-                        <h2 id="avulsoTotal" className="text-primary text-3xl font-semibold">R${formasPagamento.avulso.toFixed(2)}</h2>
+                        <h2 id="avulsoTotal" className="text-primary text-3xl font-semibold">R${totalAvulso.toFixed(2)}</h2>
                     </div>
                     <div className="bg-[#1D0C82] rounded-md w-full h-30 flex flex-col justify-center items-center py-14">
                         <h1 className="text-white text-2xl font-bold">Valor da Partida</h1>

@@ -1,10 +1,9 @@
 import logo from '../../images/logo_la.png';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavBar from '../Componentes/Navbar';
-
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+//import NavBar from '../Componentes/Navbar';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Estilos do toastify
 
 function CadJog() {
   const [username, setUsername] = useState('');
@@ -16,7 +15,7 @@ function CadJog() {
 
   const handleCadastro = async () => {
     try {
-      const response = await fetch('http://localhost:5000/cadastro', {
+      const response = await fetch('/.netlify/functions/api-cadastro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -31,20 +30,47 @@ function CadJog() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Cadastro realizado com sucesso! Mensagem enviada para o seu WhatsApp.');
+        toast('Cadastro realizado com sucesso!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
         navigate("/loginjog");
       } else {
-        toast.warn('Erro ao realizar o cadastro.');
+        toast.error('Erro ao realizar o cadastro.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       }
     } catch (error) {
       console.error('Erro na solicitação:', error);
-      toast.warn('Erro ao realizar o cadastro.');
+      toast.error('Erro ao realizar o cadastro.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
     }
   };
 
   return (
     <div>
-      <NavBar />
+      <ToastContainer />
       <div className='w-full h-screen bg-black flex items-center justify-center'>
         <div className='flex flex-col justify-center items-center'>
           <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA' />
@@ -91,7 +117,7 @@ function CadJog() {
           />
           <button
             id="bt-log"
-            className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] hover:scale-110 duration-300'
+            className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]'
             onClick={handleCadastro}
           >
             Fazer Cadastro
@@ -99,18 +125,6 @@ function CadJog() {
           <p className='text-primary mt-10'><span className='text-white'>Já possuo cadastro!</span> <a href='./loginjog/'>Clique aqui</a></p>
         </div>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-       // theme="light"
-      />
     </div>
   );
 }

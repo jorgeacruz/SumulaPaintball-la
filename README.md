@@ -25,38 +25,37 @@ Permite adicionar notificações personalizadas em aplicações React. Suporta d
 Link: https://fkhadra.github.io/react-toastify/installation
 
 ### Axios
-Axios é uma biblioteca para fazer requisições HTTP, que funciona tanto no navegador quanto no Node.js. É baseada em Promises, facilitando o tratamento de respostas assíncronas.<br/>
+Descrição: Axios é uma biblioteca para fazer requisições HTTP, que funciona tanto no navegador quanto no Node.js. É baseada em Promises, facilitando o tratamento de respostas assíncronas.<br/>
 Link: https://axios-http.com/
 
 ### Bcrypt
-Bcrypt é uma biblioteca para hashing de senhas, proporcionando uma maneira segura de armazenar senhas em bancos de dados. Ela implementa um algoritmo de hash que inclui um fator de custo, tornando os hashes mais lentos e seguros contra ataques de força bruta.<br/>
+Descrição: Bcrypt é uma biblioteca para hashing de senhas, proporcionando uma maneira segura de armazenar senhas em bancos de dados. Ela implementa um algoritmo de hash que inclui um fator de custo, tornando os hashes mais lentos e seguros contra ataques de força bruta.<br/>
 Link: https://www.npmjs.com/package/bcrypt
 
 ### Body-Parser
-Body-Parser é um middleware para Express que permite analisar o corpo das requisições HTTP. Ele suporta diferentes tipos de payload, como JSON e URL-encoded, facilitando o acesso a dados enviados em requisições.<br/>
+Descrição: Body-Parser é um middleware para Express que permite analisar o corpo das requisições HTTP. Ele suporta diferentes tipos de payload, como JSON e URL-encoded, facilitando o acesso a dados enviados em requisições.<br/>
 Link: https://github.com/expressjs/body-parser
 
 ### CORS
-CORS (Cross-Origin Resource Sharing) é um middleware que permite que recursos de um servidor sejam acessados por páginas web de diferentes origens. É essencial para a segurança de aplicações web que fazem requisições a APIs externas.<br/>
+Descrição: CORS (Cross-Origin Resource Sharing) é um middleware que permite que recursos de um servidor sejam acessados por páginas web de diferentes origens. É essencial para a segurança de aplicações web que fazem requisições a APIs externas.<br/>
 Link: https://github.com/expressjs/cors
 
 ### Dotenv
-Dotenv é uma biblioteca que carrega variáveis de ambiente de um arquivo .env para process.env em Node.js. Isso é útil para manter credenciais e configurações fora do código-fonte.<br/>
+Descrição: Dotenv é uma biblioteca que carrega variáveis de ambiente de um arquivo .env para process.env em Node.js. Isso é útil para manter credenciais e configurações fora do código-fonte.<br/>
 Link: https://github.com/motdotla/dotenv
 
 ### Express
-Express é um framework web para Node.js que facilita a criação de aplicativos e APIs. Ele oferece um conjunto robusto de recursos para construir aplicações web, incluindo roteamento, middleware e suporte a diferentes formatos de dados.<br/>
+Descrição: Express é um framework web para Node.js que facilita a criação de aplicativos e APIs. Ele oferece um conjunto robusto de recursos para construir aplicações web, incluindo roteamento, middleware e suporte a diferentes formatos de dados.<br/>
 Link: https://expressjs.com/
 
 ### MySQL
-MySQL é um sistema de gerenciamento de banco de dados relacional, amplamente utilizado para armazenar dados em aplicações web. Ele fornece uma interface SQL para interagir com os dados.<br/>
+Descrição: MySQL é um sistema de gerenciamento de banco de dados relacional, amplamente utilizado para armazenar dados em aplicações web. Ele fornece uma interface SQL para interagir com os dados.<br/>
 Link: https://www.mysql.com/
 
 ### MySQL2
-MySQL2 é uma biblioteca Node.js para interagir com bancos de dados MySQL, que oferece suporte a Promises e é compatível com a API do MySQL original, além de fornecer melhor desempenho e mais recursos.<br/>
+Descrição: MySQL2 é uma biblioteca Node.js para interagir com bancos de dados MySQL, que oferece suporte a Promises e é compatível com a API do MySQL original, além de fornecer melhor desempenho e mais recursos.<br/>
 Link: https://www.npmjs.com/package/mysql2
 
 ## Dev's
 - Jorge Cruz (Front-End)
 - Gabriel Felix (Back-End)
-

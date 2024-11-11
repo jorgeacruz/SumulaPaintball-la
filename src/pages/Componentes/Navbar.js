@@ -29,13 +29,16 @@ function NavBar() {
               <Link to="/cadjog" className="text-white hover:text-primary duration-150">Cadastro</Link>
             </li>
             <li>
-              <Link to="/cadjog" className="text-white hover:text-primary duration-150">Pre-agendamento</Link>
+              <Link to="/cadequipe" className="text-white hover:text-primary duration-150">Pre-agendamento</Link>
             </li>
             <li>
               <Link to="/financeiro" className="text-white hover:text-primary duration-150">Financeiro</Link>
             </li>
             <li>
               <Link to="/estoque" className="text-white hover:text-primary duration-150">Estoque</Link>
+            </li>
+            <li>
+              <Link to="/preagenda" className="text-white hover:text-primary duration-150">Pre-Agendado</Link>
             </li>
             <li>
               <button onClick={handleLogout} className="text-white hover:text-primary duration-150">

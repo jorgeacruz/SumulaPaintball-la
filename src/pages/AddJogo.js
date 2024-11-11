@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './Componentes/Navbar';
 import logo from '../images/logo_la.png';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Estilos do toastify
 
 function AddJogo() {
   const [data, setData] = useState('');
@@ -24,7 +26,7 @@ function AddJogo() {
 
   const handleAdicionar = async () => {
     try {
-      const response = await fetch('http://localhost:5000/addjogo', {
+      const response = await fetch('/.netlify/functions/api-jogos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -38,21 +40,48 @@ function AddJogo() {
         // Armazena a data e a hora no localStorage
         localStorage.setItem('dataJogo', data);
         localStorage.setItem('horaJogo', hora);
-  
-        alert('Jogo adicionado com sucesso!');
+        toast('Jogo adicionado com sucesso!', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
         navigate('/statusgame'); // Redireciona para StatusGame
       } else {
-        alert('Erro ao adicionar jogo.');
+        toast.error('Erro ao adicionar jogo.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       }
     } catch (error) {
       console.error('Erro na solicitação:', error);
-      alert('Erro ao adicionar jogo.');
+      toast.error('Erro ao adicionar jogo.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
     }
   };
 
   return (
     <>
       <NavBar />
+      <ToastContainer />
       <div className='w-full h-screen bg-black flex items-center justify-center'>
         <div className='flex flex-col justify-center items-center'>
           <img src={logo} className="m-4 w-[150px]" title='PaintBall - LA' alt='PaintBall - LA' />
