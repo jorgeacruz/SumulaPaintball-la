@@ -16,7 +16,6 @@ export default function ResumoGame() {
     const [totalAvulso, setTotalAvulso] = useState(0);
 
     const normalizarFormaPagamento = (forma) => {
-        // Verifica se 'forma' é uma string antes de aplicar 'toLowerCase()'
         if (typeof forma !== 'string') {
             return '';
         }
@@ -49,8 +48,8 @@ export default function ResumoGame() {
         setPagamentos(pagamentosArmazenados);
 
         const totais = pagamentosArmazenados.reduce((acc, pagamento) => {
-            const forma = normalizarFormaPagamento(pagamento.formaPagamento); // Normaliza a forma de pagamento
             const valor = parseFloat(pagamento.valorTotal);
+            const forma = normalizarFormaPagamento(pagamento.formaPagamento);
 
             if (forma in acc) {
                 acc[forma] += valor;
@@ -138,7 +137,7 @@ export default function ResumoGame() {
                             <p id="credito">R${formasPagamento.credito.toFixed(2)}</p>
                         </div>
                         <div className="flex flex-row justify-around items-start">
-                            <p className="text-xl font-semibold">Debito</p>
+                            <p className="text-xl font-semibold">Débito</p>
                             <p id="debito">R${formasPagamento.debito.toFixed(2)}</p>
                         </div>
                         <div className="flex flex-row justify-around items-start">

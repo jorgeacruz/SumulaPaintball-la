@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ClipLoader } from "react-spinners";
+import { FaTrashAlt } from "react-icons/fa";
 
 export default function PreAgendado() {
   const [equipes, setEquipes] = useState([]); 
@@ -50,7 +51,9 @@ export default function PreAgendado() {
   const handleMostrarEquipe = async (equipe) => {
     setLoadingEquipe(true);
     try {
+      console.log('ID da equipe:', equipe.equipe_id);
       const response = await axios.get(`./.netlify/functions/api-equipes/${equipe.equipe_id}/jogadores`);
+      console.log('Jogadores recebidos:', response.data);
       setJogadores(response.data);
       setSelectedEquipe(equipe);
       setShowModal(true);
@@ -136,15 +139,11 @@ export default function PreAgendado() {
                   <button 
                     className="rounded-md bg-green-600 p-2 hover:bg-black duration-300"
                     onClick={() => {
-                      toast.info('Funcionalidade em desenvolvimento', {
-                        position: "top-right",
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        theme: "light",
-                      });
+                      const numeroWhatsApp = `55${equipe.contato}`; // Adiciona o código do país 55 ao número de contato da equipe
+                      const mensagem = "Olá, gostaria de mais informações sobre a equipe."; // Mensagem pré-definida
+                      const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+                      
+                      window.open(urlWhatsApp, "_blank"); // Abre o WhatsApp em uma nova aba
                     }}
                   >
                     Entrar em contato
@@ -159,22 +158,28 @@ export default function PreAgendado() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-primary w-full max-w-4xl rounded-sm flex flex-col p-5 items-center justify-center">
-            <h2 className="text-black font-bold mb-5">Equipe: {selectedEquipe.nomeEquipe}</h2>
+            <h2 className="text-black font-bold mb-5">
+              Equipe: {selectedEquipe && selectedEquipe.nomeEquipe}
+            </h2>
             <div className="w-full flex flex-col">
               <div className="w-full flex justify-between px-3">
                 <p className="text-black font-semibold w-1/2 text-center">Nome do Jogador</p>
                 <p className="text-black font-semibold w-1/2 text-center">Contato</p>
               </div>
-              {jogadores.map((jogador, index) => (
-                <div key={index} className="w-full flex justify-between items-center px-3 py-2 border-t border-gray-300">
-                  <div className="w-1/2 text-center">
-                    <p className="text-black font-semibold">{jogador.nomeJogador}</p>
+              {jogadores.length > 0 ? (
+                jogadores.map((jogador, index) => (
+                  <div key={index} className="w-full flex justify-between items-center px-3 py-2 border-t border-gray-300">
+                    <div className="w-1/2 text-center">
+                      <p className="text-black font-semibold">{jogador.nomeJogador}</p>
+                    </div>
+                    <div className="w-1/2 text-center">
+                      <p className="text-black font-semibold">{jogador.contato}</p>
+                    </div>
                   </div>
-                  <div className="w-1/2 text-center">
-                    <p className="text-black font-semibold">{jogador.contato}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-black text-center"></p>
+              )}
             </div>
             <button
               className="mt-5 p-2 bg-red-600 text-white rounded-md"

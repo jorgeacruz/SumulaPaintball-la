@@ -184,17 +184,28 @@ export default function StatusGame() {
 
     const calcularTotalAvulsos = () => {
         return vendasAvulsas.reduce((total, venda) => {
+            if (!venda || !venda.items) return total;
             return total + venda.items.reduce((subtotal, item) => {
-                return subtotal + (Number(item.valor) || 0);
+                return subtotal + (Number(item && item.valor) || 0);
             }, 0);
         }, 0);
     };
 
     const calcularTotalDespesas = () => {
         return despesas.reduce((total, despesa) => {
+            if (!despesa || !despesa.items) return total;
             return total + despesa.items.reduce((subtotal, item) => {
-                return subtotal + (Number(item.valor) || 0);
+                return subtotal + (Number(item && item.valor) || 0);
             }, 0);
+        }, 0);
+    };
+
+    const calcularTotalJogadores = () => {
+        return jogadores.reduce((total, jogador) => {
+            const valorTotalJogador = jogador.items.reduce((subtotal, item) => {
+                return subtotal + (parseFloat(item.valor) || 0);
+            }, 0);
+            return total + valorTotalJogador;
         }, 0);
     };
 
@@ -218,7 +229,9 @@ export default function StatusGame() {
                         <div className="flex justify-between w-full gap-4 mb-4">
                             <div className="flex flex-col items-start">
                                 <p className="font-semibold">Data da Partida</p>
-                                <p id="dataPartida" className="font-semibold text-3xl">{jogo.data || 'Carregando...'}</p>
+                                <p id="dataPartida" className="font-semibold text-3xl">
+                                    {(jogo && jogo.data) || 'Carregando...'}
+                                </p>
                             </div>
                             <div className="flex flex-col items-start">
                                 <p className="font-semibold">Jogadores Ativos</p>
@@ -227,6 +240,12 @@ export default function StatusGame() {
                             <div className="flex flex-col items-start">
                                 <p className="font-semibold">Jogadores Finalizados</p>
                                 <p id="playerInativo" className="font-semibold text-3xl">{jogadoresInativos}</p> 
+                            </div>
+                            <div className="flex flex-col items-start">
+                                <p className="font-semibold">Total dos Jogadores</p>
+                                <p id="TotalJogadores" className="font-semibold text-3xl">
+                                    R$ {calcularTotalJogadores().toFixed(2)}
+                                </p> 
                             </div>
                             <div className="flex flex-col items-start">
                                 <p className="font-semibold">Avulsos</p>
@@ -242,7 +261,7 @@ export default function StatusGame() {
                             </div>
                         </div>
 
-                        {/* Componentes VendaAvulsa, CardJog e CardDespesas */}
+   
                         <div className="flex flex-wrap gap-4 text-black">
                             <CardJog 
                                 jogadores={jogadores} 

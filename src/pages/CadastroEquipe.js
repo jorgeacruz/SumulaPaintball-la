@@ -14,6 +14,7 @@ export default function CadEquipe() {
   const [jogadores, setJogadores] = useState([]); 
   const [editIndex, setEditIndex] = useState(null); 
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado para controlar o botão
 
   const handleAdd = () => {
     if (nome && email && telefone) {
@@ -64,10 +65,12 @@ export default function CadEquipe() {
 
   const handleEdit = (index) => {
     const jogador = jogadores[index];
-    setNome(jogador.nome);
-    setEmail(jogador.email);
-    setTelefone(jogador.telefone);
-    setEditIndex(index); 
+    if (jogador) {
+      setNome(jogador.nome || '');
+      setEmail(jogador.email || '');
+      setTelefone(jogador.telefone || '');
+      setEditIndex(index);
+    }
   };
 
   const handleDelete = (index) => {
@@ -85,6 +88,8 @@ export default function CadEquipe() {
   };
 
   const handleSubmit = async () => {
+    setIsSubmitting(true); // Desabilita o botão ao iniciar o cadastro
+
     if (!nomeEquipe) {
       toast.error('Preencha o nome da equipe antes de finalizar o cadastro.', {
         position: "top-right",
@@ -95,6 +100,7 @@ export default function CadEquipe() {
         draggable: true,
         theme: "light",
       });
+      setIsSubmitting(false); // Reabilita o botão após o erro
       return;
     }
 
@@ -108,6 +114,7 @@ export default function CadEquipe() {
         draggable: true,
         theme: "light",
       });
+      setIsSubmitting(false); // Reabilita o botão após o erro
       return;
     }
 
@@ -149,7 +156,11 @@ export default function CadEquipe() {
       }
     } catch (error) {
       console.error('Erro ao enviar os dados:', error);
-      toast.error('Erro ao conectar com o servidor. Tente novamente mais tarde.', {
+      const errorMessage = error.response && error.response.data && error.response.data.message 
+        ? error.response.data.message 
+        : 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
+      
+      toast.error(errorMessage, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -158,6 +169,8 @@ export default function CadEquipe() {
         draggable: true,
         theme: "light",
       });
+    } finally {
+      setIsSubmitting(false); // Reabilita o botão após a operação
     }
   };
 
@@ -243,8 +256,9 @@ export default function CadEquipe() {
       <button 
         onClick={handleSubmit}
         className="mt-4 rounded-sm bg-green-600 text-white px-4 py-2 hover:bg-green-700 duration-300"
+        disabled={isSubmitting} 
       >
-        Finalizar Cadastro
+        {isSubmitting ? 'Cadastrando...' : 'Finalizar Cadastro'} 
       </button>
     </section>
   );

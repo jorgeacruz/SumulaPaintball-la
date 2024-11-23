@@ -4,11 +4,25 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 
 export default function CardDespesas({ despesas, setDespesas, handleAddDespesa}) {
-  const [estoque, setEstoque] = useState([]);
-  const [selectedPayment, setSelectedPayment] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [despesaIndexForPayment, setDespesaIndexForPayment] = useState(null);
   const [valorTotalGeral, setValorTotalGeral] = useState(0);
+  const [paymentValues, setPaymentValues] = useState({
+    dinheiro: 0,
+    credito: 0,
+    debito: 0,
+    pix: 0
+  });
+  const [paymentMethods, setPaymentMethods] = useState({
+    dinheiro: false,
+    credito: false,
+    debito: false,
+    pix: false
+  });
+  const [descontos, setDescontos] = useState({});
+  const [descontoSelecionado, setDescontoSelecionado] = useState('');
+  const [valorComDesconto, setValorComDesconto] = useState(0);
+  const [estoque, setEstoque] = useState([]);
 
   useEffect(() => {
     axios.get('/.netlify/functions/api-estoque')
@@ -18,23 +32,15 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
   useEffect(() => {
     localStorage.setItem('totalAvulso', valorTotalGeral);
   }, [valorTotalGeral]);
+  useEffect(() => {
+    axios.get('/.netlify/functions/api-descontos')
+        .then(response => setDescontos(response.data))
+        .catch(error => console.error('Erro ao buscar descontos:', error));
+  }, []);
 
   const handleRemoveDespesa = (index) => {
-    if (despesas.length > 1) {
       const updatedDespesas = despesas.filter((_, i) => i !== index);
       setDespesas(updatedDespesas);
-    } else {
-      toast.error('Deve haver pelo menos um card de despesas na tela.', {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-      });
-    }
   };
 
   const handleNomeChange = (index, event) => {
@@ -74,164 +80,209 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
   };
 
   const handleClosePedido = (index) => {
-    if (despesas[index].isClosed) {
-      const updatedDespesas = [...despesas];
-      updatedDespesas[index].isClosed = false;
-      updatedDespesas[index].items = [];
-      setDespesas(updatedDespesas);
+    const despesa = despesas[index];
+
+    if (!despesa.nome || despesa.nome.trim() === '') {
+        toast.error('O nome da despesa é obrigatório antes de fechar o pedido.', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+        });
+        return;
+    }
+
+    if (despesa.isClosed) {
+        const updatedDespesas = [...despesas];
+        updatedDespesas[index].isClosed = false;
+        updatedDespesas[index].items = [];
+        setDespesas(updatedDespesas);
     } else {
-      setDespesaIndexForPayment(index);
-      setShowPaymentModal(true);
+        setDespesaIndexForPayment(index);
+        setShowPaymentModal(true);
     }
   };
 
-  const handlePaymentSelection = (paymentMethod) => {
-    setSelectedPayment(paymentMethod);
-  };
-
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     const despesa = despesas[despesaIndexForPayment];
-    const itemsToUpdate = despesa.items;  
-    
-    const valorTotalDespesa = despesa.items.reduce((sum, item) => sum + item.valor, 0);
-  
-    setValorTotalGeral((prevTotal) => prevTotal + valorTotalDespesa);
 
-    if (!selectedPayment) {
-      toast.error('Por favor, selecione uma forma de pagamento', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
-      });
-      return;
+    if (!despesa) {
+        toast.error('Despesa não encontrada', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+        });
+        return;
+    }
+
+    const itemsToUpdate = despesa.items;
+    const valorTotalDespesa = itemsToUpdate.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+    const valorFinal = valorComDesconto || valorTotalDespesa;
+    const totalPagamento = Object.values(paymentValues).reduce((a, b) => a + (parseFloat(b) || 0), 0);
+
+    if (!Object.values(paymentMethods).some(method => method === true)) {
+        toast.error('Por favor, selecione pelo menos uma forma de pagamento', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+        });
+        return;
+    }
+
+    if (totalPagamento !== valorFinal) {
+        toast.error('O valor total do pagamento deve ser igual ao valor final', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+        });
+        return;
     }
 
     const itemCountMap = itemsToUpdate.reduce((acc, item) => {
-      acc[item.nome] = (acc[item.nome] || 0) + 1;
-      return acc;
+        acc[item.nome] = (acc[item.nome] || 0) + 1;
+        return acc;
     }, {});
 
     let podeFechar = true;
 
-    const promises = Object.keys(itemCountMap).map(nome => {
-      const quantidadeParaSubtrair = itemCountMap[nome];
-      return axios.get(`/.netlify/functions/api-estoque/${nome}`)
-        .then(response => {
-          const quantidadeAtual = response.data.quantidade;
-          if (quantidadeAtual < quantidadeParaSubtrair) {
-            toast.error(`Quantidade insuficiente no estoque para o item ${nome}`, {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              theme: "light",
+    const promises = Object.keys(itemCountMap).map(async (nome) => {
+        const selectedItem = estoque.find(item => item.nome === nome);
+        
+        if (!selectedItem) {
+            toast.error(`Item ${nome} não encontrado no estoque`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "light",
             });
             podeFechar = false;
-          } else {
-            const novaQuantidade = quantidadeAtual - quantidadeParaSubtrair;
+            return Promise.resolve();
+        }
+
+        const quantidadeAtual = selectedItem.quantidade;
+
+        if (quantidadeAtual < itemCountMap[nome]) {
+            toast.error(`Quantidade insuficiente no estoque para o item ${nome}`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "light",
+            });
+            podeFechar = false;
+            return Promise.resolve();
+        } else {
+            const novaQuantidade = quantidadeAtual - itemCountMap[nome];
             return axios.put(`/.netlify/functions/api-estoque/${nome}`, { quantidade: novaQuantidade })
-              .then(() => {
-                console.log(`Estoque atualizado para o item ${nome} com nova quantidade ${novaQuantidade}`);
-              })
-              .catch(error => {
-                console.error('Erro ao atualizar estoque:', error);
-                toast.error('Erro ao atualizar estoque', {
-                  position: "top-right",
-                  autoClose: 3000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  theme: "light",
+                .then(() => {
+                    console.log(`Estoque atualizado para o item ${nome} com nova quantidade ${novaQuantidade}`);
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar estoque:', error);
+                    toast.error('Erro ao atualizar estoque', {
+                        position: "top-right",
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        theme: "light",
+                    });
                 });
-              });
-          }
-        })
-        .catch(error => {
-          console.error('Erro ao obter quantidade atual do estoque:', error);
-          toast.error('Erro ao verificar estoque', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            theme: "light",
-          });
-        });
+                
+        }
     });
 
-    Promise.all(promises).then(() => {
-      if (!podeFechar) {
-        toast.error('Não foi possível fechar o pedido devido à quantidade insuficiente no estoque.', {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "light",
-        });
-      } else {
-        const storedData = localStorage.getItem('dataJogo');
+    await Promise.all(promises); // Aguarda todas as promessas serem resolvidas
 
-        axios.post('/.netlify/functions/api-pedidos', {
-          nomeDespesa: despesa.nome,
-          items: despesa.items,
-          formaPagamento: selectedPayment,
-          valorTotal: valorTotalDespesa,
-          dataJogo: storedData,  
-        })
-        .then(() => {
-          toast.success('Pedido finalizado com sucesso!', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            theme: "light",
-          });
-          
-          const updatedDespesas = [...despesas];
-          updatedDespesas[despesaIndexForPayment].isClosed = true;
-          setDespesas(updatedDespesas);
-          setShowPaymentModal(false);
+    if (podeFechar) {
+        const updatedDespesas = [...despesas];
+        
+        if (despesaIndexForPayment !== undefined && despesaIndexForPayment < updatedDespesas.length) {
+            updatedDespesas[despesaIndexForPayment].isClosed = true;
+            setDespesas(updatedDespesas);
+            setShowPaymentModal(false);
+            toast.success('Pagamento confirmado com sucesso!', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "light",
+            });
 
-          const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
-          pagamentosAnteriores.push({
-            valorTotal: valorTotalDespesa,
-            formaPagamento: selectedPayment, 
-          });
-          localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
-        })
-        .catch(error => {
-          console.error('Erro ao cadastrar pedido:', error);
-          toast.error('Erro ao finalizar pedido', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            theme: "light",
-          });
-        });
-      }
-    });
+            // Enviar o pedido para a API
+            const dataJogo = localStorage.getItem('dataJogo');
+            const horaJogo = localStorage.getItem('horaJogo');
+            const dataHoraJogo = `${dataJogo} ${horaJogo}:00`;
+
+            try {
+                await axios.post('/.netlify/functions/api-pedidos', {
+                    nomeJogador: despesa.nome,
+                    items: despesa.items,
+                    formaPagamento: Object.keys(paymentMethods).find(method => paymentMethods[method]),
+                    valorTotal: valorTotalDespesa,
+                    dataJogo: dataHoraJogo,
+                });
+
+                const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
+                const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
+
+                // Calcular o valor a ser atribuído a cada forma de pagamento
+                const valorPorForma = valorTotalDespesa / formasSelecionadas.length; // Divide o total pelo número de formas selecionadas
+
+                formasSelecionadas.forEach(forma => {
+                    pagamentosAnteriores.push({
+                        valorTotal: valorPorForma, // Armazena o valor correspondente a cada forma
+                        formasPagamento: forma, // Armazena a forma de pagamento
+                    });
+                });
+
+                localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
+            } catch (error) {
+                console.error('Erro ao cadastrar pedido:', error);
+                toast.error('Erro ao finalizar pedido', {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "light",
+                });
+            }
+        } else {
+            console.error('Índice de despesa inválido:', despesaIndexForPayment);
+        }
+    }
   };
   
   return (
     <div className="flex flex-wrap gap-4">
-      <ToastContainer />
+
       {despesas.map((despesa, index) => {
-        const valorTotalDespesa = despesa.items.reduce((sum, item) => sum + item.valor, 0);
+        const valorTotalDespesa = despesa.items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
         return (
           <section key={index} className={`w-[300px] h-auto rounded-lg bg-white ${despesa.isClosed ? 'opacity-50 pointer-events-none' : ''}`}>
             <header className="bg-secondary w-full p-3 rounded-t-lg gap-2 flex flex-col justify-center items-center text-black font-normal md:flex-col md:justify-between">
@@ -331,28 +382,92 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
 
       {showPaymentModal && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-2xl font-semibold mb-4">Selecione a Forma de Pagamento</h2>
-            <select
-              value={selectedPayment}
-              onChange={(e) => handlePaymentSelection(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md mb-4"
-            >
-              <option value="">Selecione</option>
-              <option value="dinheiro">Dinheiro</option>
-              <option value="credito">Crédito</option>
-              <option value="debito">Debito</option>
-              <option value="pix">PIX</option>
-            </select>
+          <div className="bg-white p-6 rounded-lg w-[500px]">
+            <h2 className="text-2xl font-semibold mb-4">Formas de Pagamento</h2>
+            
+            <div className="mb-4">
+              <p className="font-bold">
+                Valor Total: R$ {despesas[despesaIndexForPayment] && despesas[despesaIndexForPayment].items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0).toFixed(2)}
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <select
+                value={descontoSelecionado}
+                onChange={(e) => {
+                  setDescontoSelecionado(e.target.value);
+                  const valorTotal = despesas[despesaIndexForPayment] && 
+                    despesas[despesaIndexForPayment].items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+                  const desconto = descontos[e.target.value] || 0;
+                  setValorComDesconto(valorTotal * (1 - desconto / 100));
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="">Selecione o desconto</option>
+                {Object.entries(descontos).map(([tipo, percentual]) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo} - {percentual}%
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 mb-4">
+              {['dinheiro', 'credito', 'debito', 'pix'].map((method) => (
+                <div key={method} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={paymentMethods[method]}
+                    onChange={(e) => {
+                      setPaymentMethods({
+                        ...paymentMethods,
+                        [method]: e.target.checked
+                      });
+                    }}
+                    className="w-4 h-4"
+                  />
+                  <input
+                    type="number"
+                    value={paymentValues[method]}
+                    onChange={(e) => {
+                      setPaymentValues({
+                        ...paymentValues,
+                        [method]: parseFloat(e.target.value) || 0
+                      });
+                    }}
+                    disabled={!paymentMethods[method]}
+                    placeholder={`Valor ${method}`}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  />
+                  <label className="capitalize">{method}</label>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-4">
+              <p className="font-bold">
+                Valor com Desconto: R$ {valorComDesconto.toFixed(2)}
+              </p>
+              <p className="font-bold">
+                Valor Total Inserido: R$ {Object.values(paymentValues).reduce((a, b) => a + (parseFloat(b) || 0), 0).toFixed(2)}
+              </p>
+            </div>
+
             <div className="flex justify-between mt-4">
               <button
                 className="bg-gray-500 hover:bg-black text-white py-2 px-4 rounded-lg"
-                onClick={() => setShowPaymentModal(false)}
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setPaymentValues({dinheiro: 0, credito: 0, debito: 0, pix: 0});
+                  setPaymentMethods({dinheiro: false, credito: false, debito: false, pix: false});
+                  setDescontoSelecionado('');
+                  setValorComDesconto(0);
+                }}
               >
                 Cancelar
               </button>
               <button
-                className="bg-black hover:bg-secondary py-1 px-2 rounded-lg text-white"
+                className="bg-black hover:bg-secondary py-2 px-4 rounded-lg text-white"
                 onClick={handleConfirmPayment}
               >
                 Confirmar Pagamento

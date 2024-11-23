@@ -1,111 +1,149 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
-export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
+const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
     const [estoque, setEstoque] = useState([]);
-    const [selectedPayment, setSelectedPayment] = useState('');
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [vendaIndexForPayment, setVendaIndexForPayment] = useState(null);
+    const [paymentValues, setPaymentValues] = useState({ dinheiro: 0, credito: 0, debito: 0, pix: 0 });
+    const [paymentMethods, setPaymentMethods] = useState({ dinheiro: false, credito: false, debito: false, pix: false });
+    const [descontos, setDescontos] = useState({});
+    const [descontoSelecionado, setDescontoSelecionado] = useState('');
+    const [valorComDesconto, setValorComDesconto] = useState(0);
+    const [valorTotalVendaAtual, setValorTotalVendaAtual] = useState(0);
 
     useEffect(() => {
-        axios.get('/.netlify/functions/api-estoque')
-            .then(response => setEstoque(response.data))
-            .catch(error => console.error('Erro ao buscar estoque:', error));
+        const fetchEstoque = async () => {
+            try {
+                const response = await axios.get('/.netlify/functions/api-estoque');
+                setEstoque(response.data);
+            } catch (error) {
+                console.error('Erro ao buscar estoque:', error);
+            }
+        };
+        fetchEstoque();
     }, []);
 
+    useEffect(() => {
+        const fetchDescontos = async () => {
+            try {
+                const response = await axios.get('/.netlify/functions/api-descontos');
+                setDescontos(response.data);
+            } catch (error) {
+                console.error('Erro ao buscar descontos:', error);
+            }
+        };
+        fetchDescontos();
+    }, []);
+
+    const updateVendas = (updatedVendas) => {
+        setVendas(updatedVendas);
+    };
+
     const handleRemoveVendaAvulsa = (index) => {
-        if (vendas.length > 1) {
             const updatedVendas = vendas.filter((_, i) => i !== index);
-            setVendas(updatedVendas);
-        } else {
-            toast.error('Deve haver pelo menos uma venda na tela.');
-        }
+            updateVendas(updatedVendas);
     };
 
     const handleNomeChange = (index, event) => {
         const updatedVendas = [...vendas];
         updatedVendas[index].nome = event.target.value;
-        setVendas(updatedVendas);
+        updateVendas(updatedVendas);
     };
 
     const handleNumeroChange = (index, event) => {
         const updatedVendas = [...vendas];
         updatedVendas[index].numero = event.target.value;
-        setVendas(updatedVendas);
+        updateVendas(updatedVendas);
     };
 
     const handleItemSelectChange = (index, event) => {
         const updatedVendas = [...vendas];
         const selectedItem = estoque.find(item => item.nome === event.target.value);
-        updatedVendas[index].selectedItem = selectedItem;
-        setVendas(updatedVendas);
+        updatedVendas[index].selectedItem = selectedItem ? {
+            id: selectedItem.id,
+            nome: selectedItem.nome,
+            valor: parseFloat(selectedItem.valor || 0),
+            quantidade: selectedItem.quantidade
+        } : null;
+        updateVendas(updatedVendas);
     };
 
     const handleAddItem = (index) => {
         const updatedVendas = [...vendas];
-        if (updatedVendas[index].selectedItem) {
-            const selectedItem = {...updatedVendas[index].selectedItem };
-            selectedItem.valor = parseFloat(selectedItem.valor) || 0;
+        if (updatedVendas[index].selectedItem && updatedVendas[index].selectedItem.id) {
+            const selectedItem = {
+                id: updatedVendas[index].selectedItem.id,
+                nome: updatedVendas[index].selectedItem.nome,
+                valor: parseFloat(updatedVendas[index].selectedItem.valor || 0),
+                quantidade: updatedVendas[index].selectedItem.quantidade
+            };
             updatedVendas[index].items.push(selectedItem);
             updatedVendas[index].selectedItem = '';
-            setVendas(updatedVendas);
+            updateVendas(updatedVendas);
         }
     };
 
     const handleRemoveItem = (vendaIndex, itemIndex) => {
         const updatedVendas = [...vendas];
         updatedVendas[vendaIndex].items.splice(itemIndex, 1);
-        setVendas(updatedVendas);
+        updateVendas(updatedVendas);
     };
 
     const handleClosePedido = (index) => {
-        if (vendas[index].isClosed) {
-            const updatedVendas = [...vendas];
+        const updatedVendas = [...vendas];
+        if (updatedVendas[index].isClosed) {
             updatedVendas[index].isClosed = false;
             updatedVendas[index].items = [];
-            setVendas(updatedVendas);
+            updateVendas(updatedVendas);
         } else {
+            const valorTotal = updatedVendas[index].items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+            setValorTotalVendaAtual(valorTotal);
             setVendaIndexForPayment(index);
             setShowPaymentModal(true);
         }
     };
 
-    const handlePaymentSelection = (paymentMethod) => {
-        setSelectedPayment(paymentMethod);
+    const calcularDesconto = (valorTotal) => {
+        if (!descontoSelecionado) return valorTotal;
+        const percentualDesconto = descontos[descontoSelecionado] || 0;
+        return valorTotal * (1 - percentualDesconto / 100);
     };
 
-    const handleConfirmPayment = () => {
+    const handleConfirmPayment = async () => {
+        const totalPagamento = Object.values(paymentValues).reduce((a, b) => a + (parseFloat(b) || 0), 0);
+        const valorFinal = valorComDesconto || valorTotalVendaAtual;
+
+        if (totalPagamento !== valorFinal) {
+            toast.error('O valor total do pagamento deve ser igual ao valor final', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "light",
+            });
+            return;
+        }
+
+        if (!Object.values(paymentMethods).some(method => method === true)) {
+            toast.error('Por favor, selecione pelo menos uma forma de pagamento', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "light",
+            });
+            return;
+        }
+
         const venda = vendas[vendaIndexForPayment];
         const itemsToUpdate = venda.items;
-        const valorTotalVenda = venda.items.reduce((sum, item) => sum + item.valor, 0);
-
-        if (!selectedPayment) {
-            toast.error('Por favor, selecione uma forma de pagamento', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "light",
-            });
-            return;
-        }
-
-        if (!venda.nome) {
-            toast.error('Por favor, preencha o nome do cliente', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "light",
-            });
-            return;
-        }
+        const valorTotalVenda = itemsToUpdate.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
 
         const itemCountMap = itemsToUpdate.reduce((acc, item) => {
             acc[item.nome] = (acc[item.nome] || 0) + 1;
@@ -114,59 +152,42 @@ export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
 
         let podeFechar = true;
 
-        const promises = Object.keys(itemCountMap).map(nome => {
+        const promises = Object.keys(itemCountMap).map(async (nome) => {
             const quantidadeParaSubtrair = itemCountMap[nome];
-            return axios.get(`/.netlify/functions/api-estoque/${nome}`)
-                .then(response => {
-                    const quantidadeAtual = response.data.quantidade;
-                    if (quantidadeAtual < quantidadeParaSubtrair) {
-                        toast.error(`Quantidade insuficiente no estoque para o item ${nome}`, {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            theme: "light",
-                        });
-                        podeFechar = false;
-                    } else {
-                        const novaQuantidade = quantidadeAtual - quantidadeParaSubtrair;
-                        return axios.put(`/.netlify/functions/api-estoque/${nome}`, { quantidade: novaQuantidade })
-                            .then(() => {
-                                console.log(`Estoque atualizado para o item ${nome} com nova quantidade ${novaQuantidade}`);
-                            })
-                            .catch(error => {
-                                console.error('Erro ao atualizar estoque:', error);
-                                toast.error('Erro ao atualizar estoque', {
-                                    position: "top-right",
-                                    autoClose: 3000,
-                                    hideProgressBar: false,
-                                    closeOnClick: true,
-                                    pauseOnHover: true,
-                                    draggable: true,
-                                    theme: "light",
-                                });
-                            });
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao obter quantidade atual do estoque:', error);
-                    toast.error('Erro ao verificar estoque', {
+            try {
+                const selectedItem = estoque.find(item => item.nome === nome);
+                
+                if (!selectedItem) {
+                    throw new Error(`Item ${nome} não encontrado no estoque`);
+                }
+
+                const quantidadeAtual = selectedItem.quantidade;
+
+                if (quantidadeAtual === undefined) {
+                    throw new Error(`Quantidade não encontrada para o item ${nome}`);
+                }
+
+                if (isNaN(quantidadeAtual) || quantidadeAtual < quantidadeParaSubtrair) {
+                    toast.error(`Quantidade insuficiente no estoque para o item ${nome}`, {
                         position: "top-right",
-                        autoClose: 3000,
+                        autoClose: 5000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: true,
                         draggable: true,
+                        progress: undefined,
                         theme: "light",
                     });
-                });
-        });
+                    podeFechar = false;
+                    return; // Retorna para não continuar com a atualização
+                }
 
-        Promise.all(promises).then(() => {
-            if (!podeFechar) {
-                toast.error('Não foi possível fechar o pedido devido à quantidade insuficiente no estoque.', {
+                const novaQuantidade = quantidadeAtual - quantidadeParaSubtrair;
+                await axios.put(`/.netlify/functions/api-estoque/${nome}`, { quantidade: novaQuantidade });
+                console.log(`Estoque atualizado para o item ${nome} com nova quantidade ${novaQuantidade}`);
+            } catch (error) {
+                console.error('Erro ao obter quantidade atual do estoque:', error);
+                toast.error('Erro ao verificar estoque', {
                     position: "top-right",
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -175,62 +196,73 @@ export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
                     draggable: true,
                     theme: "light",
                 });
-            } else {
-                const dataJogo = localStorage.getItem('dataJogo');
-                const horaJogo = localStorage.getItem('horaJogo');
-                const dataHoraJogo = `${dataJogo} ${horaJogo}:00`;
-
-                axios.post('/.netlify/functions/api-pedidos', {
-                    nomeJogador: venda.nome,
-                    items: venda.items,
-                    formaPagamento: selectedPayment,
-                    valorTotal: valorTotalVenda,
-                    dataJogo: dataHoraJogo,
-                })
-                .then(() => {
-                    toast.success('Pedido finalizado com sucesso!', {
-                        position: "top-right",
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        theme: "light",
-                    });
-
-                    const updatedVendas = [...vendas];
-                    updatedVendas[vendaIndexForPayment].isClosed = true;
-                    setVendas(updatedVendas);
-                    setShowPaymentModal(false);
-
-                    const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
-                    pagamentosAnteriores.push({
-                        valorTotal: valorTotalVenda,
-                        formaPagamento: selectedPayment,
-                    });
-                    localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
-                })
-                .catch(error => {
-                    console.error('Erro ao cadastrar pedido:', error);
-                    toast.error('Erro ao finalizar pedido', {
-                        position: "top-right",
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        theme: "light",
-                    });
-                });
             }
         });
+
+        await Promise.all(promises); // Aguarda todas as promessas serem resolvidas
+
+        if (podeFechar) {
+            const dataJogo = localStorage.getItem('dataJogo');
+            const horaJogo = localStorage.getItem('horaJogo');
+            const dataHoraJogo = `${dataJogo} ${horaJogo}:00`;
+
+            try {
+                await axios.post('/.netlify/functions/api-pedidos', {
+                    nomeJogador: venda.nome,
+                    items: venda.items,
+                    formaPagamento: Object.keys(paymentMethods).find(method => paymentMethods[method]),
+                    valorTotal: valorTotalVenda,
+                    dataJogo: dataHoraJogo,
+                });
+                toast.dismiss();
+                toast.success('Pedido finalizado com sucesso!', {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "light",
+                });
+
+                const updatedVendas = [...vendas];
+                updatedVendas[vendaIndexForPayment].isClosed = true;
+                updateVendas(updatedVendas);
+                setShowPaymentModal(false);
+
+                const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
+                const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
+
+                const valorPorForma = valorTotalVenda / formasSelecionadas.length;
+
+                formasSelecionadas.forEach(forma => {
+                    pagamentosAnteriores.push({
+                        valorTotal: valorPorForma,
+                        formasPagamento: forma,
+                    });
+                });
+
+                localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
+            } catch (error) {
+                console.error('Erro ao cadastrar pedido:', error);
+                toast.error('Erro ao finalizar pedido', {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "light",
+                });
+            }
+        }
     };
 
     return (
         <div className="flex flex-wrap gap-4">
-            <ToastContainer />
+
             {vendas.map((venda, index) => {
-                const valorTotalVenda = venda.items.reduce((sum, item) => sum + item.valor, 0);
+                const valorTotalVenda = venda.items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
                 return (
                     <section key={index} className={`w-[300px] h-auto rounded-lg bg-white ${venda.isClosed ? 'opacity-50 pointer-events-none' : ''}`}>
                         <header className="bg-blue-600 w-full p-3 rounded-t-lg gap-2 flex flex-col justify-center items-center text-black font-normal md:flex-col md:justify-between">
@@ -253,12 +285,12 @@ export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
                                     disabled={venda.isClosed}
                                 />
                                 <div className="inline-flex">
-                                  <button
-                                    className="bg-white hover:bg-green-600 text-black py-1 px-2 rounded-l"
-                                    onClick={handleAddVendaAvulsa}
-                                  >
-                                  +
-                                  </button>
+                                    <button
+                                        className="bg-white hover:bg-green-600 text-black py-1 px-2 rounded-l"
+                                        onClick={handleAddVendaAvulsa}
+                                    >
+                                        +
+                                    </button>
                                     <button
                                         className="bg-black hover:bg-primary py-1 px-2 rounded-r text-white"
                                         onClick={() => handleRemoveVendaAvulsa(index)}
@@ -273,7 +305,7 @@ export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
                             <div className="p-2 flex flex-col justify-center items-center gap-2 md:flex-row md:justify-between">
                                 <select
                                     className="w-full border border-slate-400 rounded px-2 p-1 text-center"
-                                    value={venda.selectedItem?.nome || ''}
+                                    value={(venda.selectedItem && venda.selectedItem.nome) || ''}
                                     onChange={(e) => handleItemSelectChange(index, e)}
                                     disabled={venda.isClosed}
                                 >
@@ -330,19 +362,67 @@ export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
 
             {showPaymentModal && (
                 <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded-lg w-96">
-                        <h2 className="text-2xl font-semibold mb-4">Selecione a Forma de Pagamento</h2>
-                        <select
-                            value={selectedPayment}
-                            onChange={(e) => handlePaymentSelection(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                        >
-                            <option value="">Selecione</option>
-                            <option value="dinheiro">Dinheiro</option>
-                            <option value="credito">Crédito</option>
-                            <option value="debito">Debito</option>
-                            <option value="pix">PIX</option>
-                        </select>
+                    <div className="bg-white p-6 rounded-lg w-[500px]">
+                        <h2 className="text-2xl font-semibold mb-4">Formas de Pagamento</h2>
+                        <div className="mb-4">
+                            <p className="font-bold">Valor Total: R$ {valorTotalVendaAtual.toFixed(2)}</p>
+                        </div>
+                        <div className="mb-4">
+                            <select
+                                value={descontoSelecionado}
+                                onChange={(e) => {
+                                    setDescontoSelecionado(e.target.value);
+                                    setValorComDesconto(calcularDesconto(valorTotalVendaAtual));
+                                }}
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                            >
+                                <option value="">Selecione o desconto</option>
+                                {Object.entries(descontos).map(([tipo, percentual]) => (
+                                    <option key={tipo} value={tipo}>
+                                        {tipo} - {percentual}%
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex flex-col gap-4 mb-4">
+                            {['dinheiro', 'credito', 'debito', 'pix'].map((method) => (
+                                <div key={method} className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={paymentMethods[method]}
+                                        onChange={(e) => {
+                                            setPaymentMethods({
+                                                ...paymentMethods,
+                                                [method]: e.target.checked
+                                            });
+                                        }}
+                                        className="w-4 h-4"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={paymentValues[method]}
+                                        onChange={(e) => {
+                                            setPaymentValues({
+                                                ...paymentValues,
+                                                [method]: parseFloat(e.target.value) || 0
+                                            });
+                                        }}
+                                        disabled={!paymentMethods[method]}
+                                        placeholder={`Valor ${method}`}
+                                        className="w-full p-2 border border-gray-300 rounded-md"
+                                    />
+                                    <label className="capitalize">{method}</label>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mb-4">
+                            <p className="font-bold">
+                                Valor com Desconto: R$ {valorComDesconto.toFixed(2)}
+                            </p>
+                            <p className="font-bold">
+                                Valor Total Inserido: R$ {Object.values(paymentValues).reduce((a, b) => a + b, 0).toFixed(2)}
+                            </p>
+                        </div>
                         <div className="flex justify-between mt-4">
                             <button
                                 className="bg-gray-500 hover:bg-black text-white py-2 px-4 rounded-lg"
@@ -351,7 +431,7 @@ export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
                                 Cancelar
                             </button>
                             <button
-                                className="bg-black hover:bg-secondary py-1 px-2 rounded-lg text-white"
+                                className="bg-black hover:bg-secondary py-2 px-4 rounded-lg text-white"
                                 onClick={handleConfirmPayment}
                             >
                                 Confirmar Pagamento
@@ -362,4 +442,6 @@ export default function VendaAvul({ vendas, setVendas, handleAddVendaAvulsa }) {
             )}
         </div>
     );
-}
+};
+
+export default VendaAvul;
