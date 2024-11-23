@@ -3,19 +3,38 @@
 ![L.A. Paintball](screen.png)
 
 ## Descrição
-GPaint-LA é um sistema simples para gerenciar os jogadores de Paintball, onde o consumo de insumos (tais como: bebidas, bolinhas, tipo de marcador e etc...)  dentro da arena é registrado num card individual.
+<p>
+GPaint-LA é uma solução prática e eficiente para gerenciar jogadores de Paintball. Ele permite registrar, de forma individual, o consumo de insumos na arena, como bebidas, bolinhas, tipos de marcadores, entre outros. Cada jogador possui um card exclusivo para controle detalhado.
 
-O sistema contêm Estoque de Insumos, Financeiro e venda avulsa.
+O sistema também integra funcionalidades essenciais, como:
 
+Usuários final
+- Cadastro de usuários
+- Cadastro de equipe
+
+Administradores
+- Gestão de Estoque de Insumos
+- Gestão de Descontos
+- Cadastro de Usuários
+- Controle Financeiro
+
+Operador
+- Venda Avulsa (Card)
+- Jogadores Ativos (Card)
+- Despesas (card)
+</p>
+<p>
+Com o GPaint-LA, administrar sua arena de Paintball se torna mais simples e organizado!
+</p>
 
 ## Bibliotecas
 
-### Reac-Icons
+### React-Icons
 Inclua ícones populares em seus projetos React facilmente com react-icons, que utiliza importações ES6 que permitem incluir apenas os ícones que seu projeto está usando.
 <br/>
 link: https://react-icons.github.io/react-icons/
 
-### Reac-Tailwind-Datapicker
+### React-Tailwind-Datapicker
 Um componente moderno de selecionador de intervalo de datas para React usando Tailwind 3 e dayjs.
 <br/>
 link: https://react-tailwindcss-datepicker.vercel.app
