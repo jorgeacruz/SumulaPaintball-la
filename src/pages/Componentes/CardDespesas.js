@@ -25,17 +25,31 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
   const [estoque, setEstoque] = useState([]);
 
   useEffect(() => {
-    axios.get('/.netlify/functions/api-estoque')
-      .then(response => setEstoque(response.data))
-      .catch(error => console.error('Erro ao buscar estoque:', error));
+    const fetchEstoque = async () => {
+      try {
+        const response = await axios.get('/.netlify/functions/api-estoque');
+        setEstoque(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar estoque:', error);
+      }
+    };
+    fetchEstoque();
   }, []);
+
   useEffect(() => {
     localStorage.setItem('totalAvulso', valorTotalGeral);
   }, [valorTotalGeral]);
+
   useEffect(() => {
-    axios.get('/.netlify/functions/api-descontos')
-        .then(response => setDescontos(response.data))
-        .catch(error => console.error('Erro ao buscar descontos:', error));
+    const fetchDescontos = async () => {
+      try {
+        const response = await axios.get('/.netlify/functions/api-descontos');
+        setDescontos(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar descontos:', error);
+      }
+    };
+    fetchDescontos();
   }, []);
 
   const handleRemoveDespesa = (index) => {
@@ -69,31 +83,37 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
       selectedItem.valor = parseFloat(selectedItem.valor) || 0;
       updatedDespesas[index].items.push(selectedItem);
       updatedDespesas[index].selectedItem = '';
+
+      // Armazenar a quantidade e o nome dos itens no localStorage da página VendaAvul
+      const storedItems = JSON.parse(localStorage.getItem('itensVendaAvul')) || {};
+      const itemName = selectedItem.nome;
+      storedItems[itemName] = (storedItems[itemName] || 0) + 1; // Incrementa a quantidade
+      localStorage.setItem('itensVendaAvul', JSON.stringify(storedItems));
+
       setDespesas(updatedDespesas);
     }
   };
 
   const handleRemoveItem = (despesaIndex, itemIndex) => {
     const updatedDespesas = [...despesas];
+    const itemName = updatedDespesas[despesaIndex].items[itemIndex].nome;
+
+    // Atualiza o localStorage ao remover um item
+    const storedItems = JSON.parse(localStorage.getItem('itensVendaAvul')) || {};
+    if (storedItems[itemName]) {
+      storedItems[itemName] -= 1; // Decrementa a quantidade
+      if (storedItems[itemName] <= 0) {
+        delete storedItems[itemName]; // Remove o item se a quantidade for zero
+      }
+    }
+    localStorage.setItem('itensVendaAvul', JSON.stringify(storedItems));
+
     updatedDespesas[despesaIndex].items.splice(itemIndex, 1);
     setDespesas(updatedDespesas);
   };
 
   const handleClosePedido = (index) => {
     const despesa = despesas[index];
-
-    if (!despesa.nome || despesa.nome.trim() === '') {
-        toast.error('O nome da despesa é obrigatório antes de fechar o pedido.', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            theme: "light",
-        });
-        return;
-    }
 
     if (despesa.isClosed) {
         const updatedDespesas = [...despesas];
@@ -127,8 +147,8 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
     const valorFinal = valorComDesconto || valorTotalDespesa;
     const totalPagamento = Object.values(paymentValues).reduce((a, b) => a + (parseFloat(b) || 0), 0);
 
-    if (!Object.values(paymentMethods).some(method => method === true)) {
-        toast.error('Por favor, selecione pelo menos uma forma de pagamento', {
+    if (totalPagamento !== valorFinal) {
+        toast.error('O valor total do pagamento deve ser igual ao valor final', {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
@@ -140,8 +160,8 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
         return;
     }
 
-    if (totalPagamento !== valorFinal) {
-        toast.error('O valor total do pagamento deve ser igual ao valor final', {
+    if (!Object.values(paymentMethods).some(method => method === true)) {
+        toast.error('Por favor, selecione pelo menos uma forma de pagamento', {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
@@ -158,125 +178,59 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
         return acc;
     }, {});
 
-    let podeFechar = true;
+    try {
+        // Finaliza pedido
+        const dataJogo = `${localStorage.getItem('dataJogo')} ${localStorage.getItem('horaJogo')}:00`;
+        await axios.post('/.netlify/functions/api-pedidos', {
+            nomeJogador: despesa.nome,
+            items: despesa.items,
+            formaPagamento: Object.keys(paymentMethods).find(method => paymentMethods[method]),
+            valorTotal: valorFinal,
+            dataJogo,
+        });
 
-    const promises = Object.keys(itemCountMap).map(async (nome) => {
-        const selectedItem = estoque.find(item => item.nome === nome);
-        
-        if (!selectedItem) {
-            toast.error(`Item ${nome} não encontrado no estoque`, {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "light",
-            });
-            podeFechar = false;
-            return Promise.resolve();
-        }
-
-        const quantidadeAtual = selectedItem.quantidade;
-
-        if (quantidadeAtual < itemCountMap[nome]) {
-            toast.error(`Quantidade insuficiente no estoque para o item ${nome}`, {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "light",
-            });
-            podeFechar = false;
-            return Promise.resolve();
-        } else {
-            const novaQuantidade = quantidadeAtual - itemCountMap[nome];
-            return axios.put(`/.netlify/functions/api-estoque/${nome}`, { quantidade: novaQuantidade })
-                .then(() => {
-                    console.log(`Estoque atualizado para o item ${nome} com nova quantidade ${novaQuantidade}`);
-                })
-                .catch(error => {
-                    console.error('Erro ao atualizar estoque:', error);
-                    toast.error('Erro ao atualizar estoque', {
-                        position: "top-right",
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        theme: "light",
-                    });
-                });
-                
-        }
-    });
-
-    await Promise.all(promises); // Aguarda todas as promessas serem resolvidas
-
-    if (podeFechar) {
+        // Atualiza estado e localStorage
         const updatedDespesas = [...despesas];
-        
-        if (despesaIndexForPayment !== undefined && despesaIndexForPayment < updatedDespesas.length) {
-            updatedDespesas[despesaIndexForPayment].isClosed = true;
-            setDespesas(updatedDespesas);
-            setShowPaymentModal(false);
-            toast.success('Pagamento confirmado com sucesso!', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "light",
+        updatedDespesas[despesaIndexForPayment].isClosed = true;
+        setDespesas(updatedDespesas);
+        setShowPaymentModal(false);
+
+        const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
+        const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
+        const valorPorForma = valorFinal / formasSelecionadas.length;
+
+        formasSelecionadas.forEach(forma => {
+            pagamentosAnteriores.push({
+                valorTotal: valorPorForma,
+                formaPagamento: forma,
             });
+        });
 
-            // Enviar o pedido para a API
-            const dataJogo = localStorage.getItem('dataJogo');
-            const horaJogo = localStorage.getItem('horaJogo');
-            const dataHoraJogo = `${dataJogo} ${horaJogo}:00`;
+        localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
+        toast.success('Pedido finalizado com sucesso!', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+        });
 
-            try {
-                await axios.post('/.netlify/functions/api-pedidos', {
-                    nomeJogador: despesa.nome,
-                    items: despesa.items,
-                    formaPagamento: Object.keys(paymentMethods).find(method => paymentMethods[method]),
-                    valorTotal: valorTotalDespesa,
-                    dataJogo: dataHoraJogo,
-                });
-
-                const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
-                const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
-
-                // Calcular o valor a ser atribuído a cada forma de pagamento
-                const valorPorForma = valorTotalDespesa / formasSelecionadas.length; // Divide o total pelo número de formas selecionadas
-
-                formasSelecionadas.forEach(forma => {
-                    pagamentosAnteriores.push({
-                        valorTotal: valorPorForma, // Armazena o valor correspondente a cada forma
-                        formasPagamento: forma, // Armazena a forma de pagamento
-                    });
-                });
-
-                localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
-            } catch (error) {
-                console.error('Erro ao cadastrar pedido:', error);
-                toast.error('Erro ao finalizar pedido', {
-                    position: "top-right",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    theme: "light",
-                });
-            }
-        } else {
-            console.error('Índice de despesa inválido:', despesaIndexForPayment);
-        }
+    } catch (error) {
+        console.error(error.message);
+        toast.error(error.message || 'Erro ao processar pedido', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+        });
     }
-  };
+};
+
   
   return (
     <div className="flex flex-wrap gap-4">

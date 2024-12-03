@@ -7,6 +7,7 @@ import { FaPlus } from "react-icons/fa6";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ClipLoader } from "react-spinners";
+import axios from 'axios';
 
 export default function StatusGame() {
     const [jogo, setJogo] = useState({});
@@ -128,12 +129,12 @@ export default function StatusGame() {
         setShowConfirmationModal(true);
     };
 
-    const confirmCloseGame = () => {
+    const confirmCloseGame = async () => {
         const jogadoresAbertos = jogadores.filter(jogador => !jogador.isClosed);
-        const vendasAbertos = vendasAvulsas.filter(venda => !venda.isClosed);
+        const vendasAbertas = vendasAvulsas.filter(venda => !venda.isClosed);
         const despesasAbertas = despesas.filter(despesa => !despesa.isClosed);
 
-        if (jogadoresAbertos.length > 0 || vendasAbertos.length > 0 || despesasAbertas.length > 0) {
+        if (jogadoresAbertos.length > 0 || vendasAbertas.length > 0 || despesasAbertas.length > 0) {
             toast.error('Não é possível fechar a partida com cards abertos!', {
                 position: "top-right",
                 autoClose: 3000,
@@ -149,7 +150,44 @@ export default function StatusGame() {
 
         setLoading(true);
         try {
-            // Aqui você pode adicionar lógica para salvar os dados finais
+            // Lógica para diminuir os valores no banco de dados
+            const storedItems = JSON.parse(localStorage.getItem('itensVendaAvul')) || {};
+            const promises = Object.keys(storedItems).map(async (itemName) => {
+                const quantidadeParaSubtrair = storedItems[itemName];
+                const response = await axios.get(`/.netlify/functions/api-estoque/${itemName}`);
+                const selectedItems = response.data;
+                console.log(storedItems);
+                if (selectedItems.length === 0) {
+                    throw new Error(`Item ${itemName} não encontrado no estoque`);
+                }
+
+                const selectedItem = selectedItems[0];
+
+                if (selectedItem.quantidade < quantidadeParaSubtrair) {
+                    throw new Error(`Quantidade insuficiente no estoque para o item ${itemName}`);
+                }
+
+                const novaQuantidade = selectedItem.quantidade - quantidadeParaSubtrair;
+
+                // Atualiza o estoque no banco de dados
+                await axios.put(`/.netlify/functions/api-estoque/${itemName}`, { nome: itemName, quantidade: novaQuantidade });
+
+                // Atualiza o localStorage após a subtração
+                storedItems[itemName] -= quantidadeParaSubtrair; // Decrementa a quantidade
+                if (storedItems[itemName] <= 0) {
+                    delete storedItems[itemName]; // Remove o item se a quantidade for zero
+                }
+            });
+
+            // Aguarda todas as promessas serem resolvidas
+            await Promise.all(promises); 
+
+            // Atualiza o localStorage com o novo estado
+            localStorage.setItem('itensVendaAvul', JSON.stringify(storedItems)); 
+
+            // Limpa o localStorage da chave 'itensVendaAvul' após o processamento
+            localStorage.removeItem('itensVendaAvul'); // Remove o item do localStorage
+
             setShowConfirmationModal(false);
             toast.success('Partida finalizada com sucesso!', {
                 position: "top-right",
@@ -164,6 +202,7 @@ export default function StatusGame() {
                 navigate('/resumogame');
             }, 1000);
         } catch (error) {
+            console.error('Erro ao finalizar partida:', error);
             toast.error('Erro ao finalizar partida', {
                 position: "top-right",
                 autoClose: 3000,
@@ -202,10 +241,10 @@ export default function StatusGame() {
 
     const calcularTotalJogadores = () => {
         return jogadores.reduce((total, jogador) => {
-            const valorTotalJogador = jogador.items.reduce((subtotal, item) => {
-                return subtotal + (parseFloat(item.valor) || 0);
+            if (!jogador || !jogador.items) return total;
+            return total + jogador.items.reduce((subtotal, item) => {
+                return subtotal + (Number(item && item.valor) || 0);
             }, 0);
-            return total + valorTotalJogador;
         }, 0);
     };
 
@@ -230,7 +269,9 @@ export default function StatusGame() {
                             <div className="flex flex-col items-start">
                                 <p className="font-semibold">Data da Partida</p>
                                 <p id="dataPartida" className="font-semibold text-3xl">
-                                    {(jogo && jogo.data) || 'Carregando...'}
+                                    {jogo && jogo.data 
+                                        ? new Date(new Date(jogo.data).getTime() + (24 * 60 * 60 * 1000)).toLocaleDateString('pt-BR') 
+                                        : 'Carregando...'}
                                 </p>
                             </div>
                             <div className="flex flex-col items-start">

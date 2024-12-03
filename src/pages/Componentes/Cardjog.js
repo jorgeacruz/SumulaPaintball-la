@@ -77,12 +77,31 @@ export default function CardJogador({ jogadores, setJogadores, handleAddJogador 
             selectedItem.valor = parseFloat(selectedItem.valor) || 0;
             updatedJogadores[index].items.push(selectedItem);
             updatedJogadores[index].selectedItem = '';
+
+            // Armazenar a quantidade e o nome dos itens no localStorage da página VendaAvul
+            const storedItems = JSON.parse(localStorage.getItem('itensVendaAvul')) || {};
+            const itemName = selectedItem.nome;
+            storedItems[itemName] = (storedItems[itemName] || 0) + 1; // Incrementa a quantidade
+            localStorage.setItem('itensVendaAvul', JSON.stringify(storedItems));
+
             updateJogadores(updatedJogadores);
         }
     };
 
     const handleRemoveItem = (jogadorIndex, itemIndex) => {
         const updatedJogadores = [...jogadores];
+        const itemName = updatedJogadores[jogadorIndex].items[itemIndex].nome;
+
+        // Atualiza o localStorage ao remover um item
+        const storedItems = JSON.parse(localStorage.getItem('itensVendaAvul')) || {};
+        if (storedItems[itemName]) {
+            storedItems[itemName] -= 1; // Decrementa a quantidade
+            if (storedItems[itemName] <= 0) {
+                delete storedItems[itemName]; // Remove o item se a quantidade for zero
+            }
+        }
+        localStorage.setItem('itensVendaAvul', JSON.stringify(storedItems));
+
         updatedJogadores[jogadorIndex].items.splice(itemIndex, 1);
         updateJogadores(updatedJogadores);
     };
@@ -113,6 +132,10 @@ export default function CardJogador({ jogadores, setJogadores, handleAddJogador 
             setJogadorIndexForPayment(index);
             setShowPaymentModal(true);
         }
+
+        // Calcular o valor total após fechar o pedido
+        const valorTotal = jogador.items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+        setValorTotalVendaAtual(valorTotal); // Atualiza o estado com o novo total
     };
 
     const handleConfirmPayment = async () => {
@@ -149,6 +172,7 @@ export default function CardJogador({ jogadores, setJogadores, handleAddJogador 
         // Verifique se os valores foram inseridos
         const totalPagamento = Object.values(paymentValues).reduce((a, b) => a + (parseFloat(b) || 0), 0);
         const valorTotal = jogador.items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+        setValorTotalVendaAtual(valorTotal);
         if (totalPagamento !== valorTotal) {
             toast.error('O valor total do pagamento deve ser igual ao valor total dos itens', {
                 position: "top-right",
@@ -162,7 +186,13 @@ export default function CardJogador({ jogadores, setJogadores, handleAddJogador 
             return;
         }
 
-        // Se todas as validações passarem, feche o pedido
+        // Mapeie os itens do jogador para calcular as quantidades
+        const itemCountMap = jogador.items.reduce((acc, item) => {
+            acc[item.nome] = (acc[item.nome] || 0) + 1;
+            return acc;
+        }, {});
+
+     
         const updatedJogadores = [...jogadores];
         updatedJogadores[jogadorIndexForPayment].isClosed = true;
         updateJogadores(updatedJogadores);
@@ -216,6 +246,19 @@ export default function CardJogador({ jogadores, setJogadores, handleAddJogador 
             });
         }
     };
+
+    const calcularTotal = () => {
+        return jogadores.reduce((total, jogador) => {
+            const valorJogador = jogador.items.reduce((soma, item) => soma + (parseFloat(item.valor) || 0), 0);
+            return total + valorJogador;
+        }, 0);
+    };
+
+    // Atualize o valor total sempre que os jogadores mudarem
+    useEffect(() => {
+        const total = calcularTotal();
+        setValorTotalVendaAtual(total);
+    }, [jogadores]); // Dependência para re-calcular quando jogadores mudarem
 
     return (
         <div className="flex flex-wrap gap-4">
@@ -403,5 +446,4 @@ export default function CardJogador({ jogadores, setJogadores, handleAddJogador 
             )}
         </div>
     );
-}
-
+} 

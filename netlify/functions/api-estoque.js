@@ -28,7 +28,31 @@ exports.handler = async (event, context) => {
       };
     }
   }
+  if (event.httpMethod === 'GET' && event.path.includes('/estoque/')) {
+    try {
+        const nome = event.path.split('/').pop();
+        const query = 'SELECT quantidade FROM estoque WHERE nome = ?';
+        const [results] = await connection.query(query, [nome]);
 
+        if (results.length === 0) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ error: `Item ${nome} não encontrado no estoque` })
+            };
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ quantidade: results[0].quantidade })
+        };
+    } catch (err) {
+        console.error('Erro ao buscar quantidade do estoque:', err);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Erro ao buscar quantidade do estoque' })
+        };
+    }
+}
   // POST /estoque
   if (event.httpMethod === 'POST') {
     try {
@@ -72,54 +96,63 @@ exports.handler = async (event, context) => {
   // PUT /estoque/:nome
   if (event.httpMethod === 'PUT') {
     try {
-      const nome = event.path.split('/').pop();
-      const { quantidade, valor } = JSON.parse(event.body);
+        const nome = event.path.split('/').pop();
+        const { quantidade, valor } = JSON.parse(event.body);
 
-      if (nome === 'marcador especial' && quantidade !== undefined) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify("A quantidade do 'marcador especial' não pode ser alterada.")
-        };
-      }
-
-      if (quantidade === undefined && valor === undefined) {
-        return {
-          statusCode: 400,
-          body: JSON.stringify("Nenhum valor para atualizar fornecido")
-        };
-      }
-
-      let query = 'UPDATE estoque SET ';
-      const values = [];
-
-      if (quantidade !== undefined) {
-        query += 'quantidade = ? ';
-        values.push(quantidade);
-      }
-
-      if (valor !== undefined) {
-        if (values.length > 0) {
-          query += ', ';
+        // Verifica se o item existe antes de atualizar
+        const [itemExists] = await connection.query('SELECT * FROM estoque WHERE nome = ?', [nome]);
+        if (itemExists.length === 0) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({ error: `Item ${nome} não encontrado no estoque` })
+            };
         }
-        query += 'valor = ? ';
-        values.push(valor);
-      }
 
-      query += 'WHERE nome = ?';
-      values.push(nome);
+        if (nome === 'marcador especial' && quantidade !== undefined) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify("A quantidade do 'marcador especial' não pode ser alterada.")
+            };
+        }
 
-      await connection.query(query, values);
-      
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ success: true, message: 'Estoque atualizado com sucesso' })
-      };
+        if (quantidade === undefined && valor === undefined) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify("Nenhum valor para atualizar fornecido")
+            };
+        }
+
+        let query = 'UPDATE estoque SET ';
+        const values = [];
+
+        if (quantidade !== undefined) {
+            query += 'quantidade = ? ';
+            values.push(quantidade);
+        }
+
+        if (valor !== undefined) {
+            if (values.length > 0) {
+                query += ', ';
+            }
+            query += 'valor = ? ';
+            values.push(valor);
+        }
+
+        query += 'WHERE nome = ?';
+        values.push(nome);
+
+        await connection.query(query, values);
+        
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ success: true, message: 'Estoque atualizado com sucesso' })
+        };
     } catch (err) {
-      console.error('Erro ao atualizar estoque:', err);
-      return {
-        statusCode: 500,
-        body: JSON.stringify('Erro ao atualizar estoque')
-      };
+        console.error('Erro ao atualizar estoque:', err);
+        return {
+            statusCode: 500,
+            body: JSON.stringify('Erro ao atualizar estoque')
+        };
     }
   }
 

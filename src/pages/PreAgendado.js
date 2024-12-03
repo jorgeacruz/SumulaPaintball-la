@@ -3,7 +3,8 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ClipLoader } from "react-spinners";
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaExchangeAlt } from "react-icons/fa";
+import NavBar from './Componentes/Navbar';
 
 export default function PreAgendado() {
   const [equipes, setEquipes] = useState([]); 
@@ -51,9 +52,8 @@ export default function PreAgendado() {
   const handleMostrarEquipe = async (equipe) => {
     setLoadingEquipe(true);
     try {
-      console.log('ID da equipe:', equipe.equipe_id);
-      const response = await axios.get(`./.netlify/functions/api-equipes/${equipe.equipe_id}/jogadores`);
-      console.log('Jogadores recebidos:', response.data);
+      const response = await axios.get(`./.netlify/functions/api-jogador?team_id=${equipe.equipe_id}`); 
+      
       setJogadores(response.data);
       setSelectedEquipe(equipe);
       setShowModal(true);
@@ -84,9 +84,50 @@ export default function PreAgendado() {
     }
   };
 
+  const fecharPartida = (equipeId) => {
+    setEquipes((prevEquipes) =>
+      prevEquipes.map((equipe) =>
+        equipe.equipe_id === equipeId
+          ? { ...equipe, status: equipe.status === 'Confirmado' ? 'Cancelado' : 'Confirmado' }
+          : equipe
+      )
+    );
+  };
+
+  const imprimirNomesJogadores = () => {
+    if (jogadores.length > 0 && selectedEquipe) {
+      // Cria uma nova janela
+      const printWindow = window.open('', '_blank');
+      
+      // Adiciona conteúdo à nova janela
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Nomes dos Jogadores da Equipe: ${selectedEquipe.nomeEquipe}</title>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              h1 { text-align: center; }
+              .player { margin: 10px 0; }
+            </style>
+          </head>
+          <body>
+            <h1>Nomes dos Jogadores da Equipe: ${selectedEquipe.nomeEquipe}</h1>
+            ${jogadores.map(jogador => `<div class="player">${jogador.username}</div>`).join('')}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      printWindow.print();
+    } else {
+      alert('Nenhum jogador encontrado para imprimir ou equipe não selecionada.');
+    }
+  };
+
   return (
     <section className="bg-black text-white p-4 w-full h-screen flex flex-col items-center">
       <ToastContainer />
+      <NavBar />
       <div className="gap-2 flex flex-col lg:flex-row justify-center items-center w-auto">
         <h1 className="text-white text-3xl text-center m-5">Jogos Pré-Agendados</h1> 
       </div>
@@ -109,6 +150,7 @@ export default function PreAgendado() {
               <th className="w-full flex justify-start">Nome da Equipe</th>
               <th className="w-full flex justify-start">Nome do Jogador</th>
               <th className="w-full flex justify-start">Contato</th>
+              <th className="w-full flex justify-start">Status</th>
               <th className="w-full flex justify-start">Ação</th>
             </tr>
           </thead>
@@ -118,6 +160,7 @@ export default function PreAgendado() {
                 <td className="w-full">{equipe.nomeEquipe}</td>
                 <td className="w-full">{equipe.nomeJogador}</td>
                 <td className="w-full">{equipe.contato}</td>
+                <td className="w-full">{equipe.status}</td>
                 <td className="w-full flex gap-2">
                   <button
                     className="rounded-md bg-primary p-2 text-black hover:bg-black duration-300 hover:text-white flex items-center justify-center min-w-[120px]"
@@ -148,6 +191,12 @@ export default function PreAgendado() {
                   >
                     Entrar em contato
                   </button>
+                  <button 
+                    className="bg-red-500 text-white hover:bg-red-600 duration-300 flex items-center justify-center p-2 rounded-md"
+                    onClick={() => fecharPartida(equipe.equipe_id)}
+                  >
+                    <FaExchangeAlt className="text-black" />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -158,7 +207,7 @@ export default function PreAgendado() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-primary w-full max-w-4xl rounded-sm flex flex-col p-5 items-center justify-center">
-            <h2 className="text-black font-bold mb-5">
+            <h2 className="text-black font-bold mb-5" id="modal-title">
               Equipe: {selectedEquipe && selectedEquipe.nomeEquipe}
             </h2>
             <div className="w-full flex flex-col">
@@ -170,23 +219,33 @@ export default function PreAgendado() {
                 jogadores.map((jogador, index) => (
                   <div key={index} className="w-full flex justify-between items-center px-3 py-2 border-t border-gray-300">
                     <div className="w-1/2 text-center">
-                      <p className="text-black font-semibold">{jogador.nomeJogador}</p>
+                      <p className="text-black font-semibold">{jogador.username}</p>
                     </div>
                     <div className="w-1/2 text-center">
-                      <p className="text-black font-semibold">{jogador.contato}</p>
+                      <p className="text-black font-semibold">{jogador.telefone}</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-black text-center"></p>
+                <p className="text-black text-center">Nenhum jogador encontrado nesta equipe.</p>
               )}
             </div>
-            <button
-              className="mt-5 p-2 bg-red-600 text-white rounded-md"
-              onClick={() => setShowModal(false)}
-            >
-              Fechar
-            </button>
+            <div className="flex gap-2 mt-5">
+              <button
+                className="p-2 bg-red-600 text-white rounded-md"
+                onClick={() => setShowModal(false)}
+                aria-label="Fechar modal"
+              >
+                Fechar
+              </button>
+              <button
+                className="p-2 bg-blue-600 text-white rounded-md"
+                onClick={imprimirNomesJogadores}
+                aria-label="Imprimir nomes dos jogadores"
+              >
+                Imprimir Equipes
+              </button>
+            </div>
           </div>
         </div>
       )}

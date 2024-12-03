@@ -13,11 +13,16 @@ export default function Financeiro() {
   });
   const [financeiroData, setFinanceiroData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [jogos, setJogos] = useState([]);
+  const [jogosFiltrados, setJogosFiltrados] = useState([]);
 
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    setValue({ startDate: today, endDate: today });
-    buscarDadosFinanceiros(today);
+    const today = new Date();
+    today.setDate(today.getDate() - 1);
+    const formattedDate = today.toISOString().split("T")[0];
+    setValue({ startDate: formattedDate, endDate: formattedDate });
+    buscarDadosFinanceiros(formattedDate);
+    filtrarJogos();
   }, []);
 
   const buscarDadosFinanceiros = (data) => {
@@ -97,6 +102,21 @@ export default function Financeiro() {
     window.print();
   };
 
+  const filtrarJogos = () => {
+    const agora = new Date();
+    const primeiroDiaDoMesAtual = new Date(agora.getFullYear(), agora.getMonth(), 1);
+    const primeiroDiaDoMesPassado = new Date(agora.getFullYear(), agora.getMonth() - 1, 1);
+    const primeiroDiaDoProximoMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 1);
+
+    const jogosFiltrados = jogos.filter(jogo => {
+      const dataJogo = new Date(jogo.data);
+      return (dataJogo >= primeiroDiaDoMesAtual && dataJogo < primeiroDiaDoProximoMes) ||
+             (dataJogo >= primeiroDiaDoMesPassado && dataJogo < primeiroDiaDoAtual);
+    });
+
+    setJogosFiltrados(jogosFiltrados);
+  };
+
   return (
     <section className="bg-black p-4 w-full h-screen flex flex-col items-center overflow-auto"> 
       <ToastContainer />
@@ -120,8 +140,6 @@ export default function Financeiro() {
               shortcuts: {
                 today: "Hoje",
                 yesterday: "Ontem",
-                currentMonth: "Mês Atual",
-                pastMonth: "Mês Passado",
               },
               footer: {
                 cancel: "Cancelar",
@@ -157,7 +175,7 @@ export default function Financeiro() {
             <thead className="bg-primary text-black">
               <tr className="flex justify-around">
                 <th className="w-full flex justify-start">Data do Jogo</th>
-                <th className="w-full flex justify-start">Total de Jogadores</th>
+                <th className="w-full flex justify-start">Total de Pedidos</th> 
                 <th className="w-full flex justify-start">Crédito</th>
                 <th className="w-full flex justify-start">Débito</th>
                 <th className="w-full flex justify-start">Dinheiro</th>
@@ -169,7 +187,11 @@ export default function Financeiro() {
             <tbody>
               {financeiroData.map((item, index) => (
                 <tr key={index} className="p-1 text-white flex justify-around hover:bg-green-700 duration-300 border border-gray-500">
-                  <td className="w-full">{item && item.data_jogo ? new Date(item.data_jogo).toLocaleDateString('pt-BR') : ''}</td>
+                  <td className="w-full">
+                    {item && item.data_jogo 
+                      ? new Date(new Date(item.data_jogo).getTime() + (24 * 60 * 60 * 1000)).toLocaleDateString('pt-BR') 
+                      : ''}
+                  </td>
                   <td className="w-full">{item && item.total_jogadores}</td>
                   <td className="w-full">R${item && item.credito}</td>
                   <td className="w-full">R${item && item.debito}</td>

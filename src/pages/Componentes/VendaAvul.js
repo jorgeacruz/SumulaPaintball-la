@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 
 const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
     const [estoque, setEstoque] = useState([]);
+    const [quantidadeLocal, setQuantidadeLocal] = useState({});
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [vendaIndexForPayment, setVendaIndexForPayment] = useState(null);
     const [paymentValues, setPaymentValues] = useState({ dinheiro: 0, credito: 0, debito: 0, pix: 0 });
@@ -37,13 +38,19 @@ const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
         fetchDescontos();
     }, []);
 
+    useEffect(() => {
+        // Recupera os itens do localStorage ao montar o componente
+        const storedItems = JSON.parse(localStorage.getItem('itensVenda')) || {};
+        setQuantidadeLocal(storedItems);
+    }, []);
+
     const updateVendas = (updatedVendas) => {
         setVendas(updatedVendas);
     };
 
     const handleRemoveVendaAvulsa = (index) => {
-            const updatedVendas = vendas.filter((_, i) => i !== index);
-            updateVendas(updatedVendas);
+        const updatedVendas = vendas.filter((_, i) => i !== index);
+        updateVendas(updatedVendas);
     };
 
     const handleNomeChange = (index, event) => {
@@ -72,6 +79,7 @@ const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
 
     const handleAddItem = (index) => {
         const updatedVendas = [...vendas];
+        
         if (updatedVendas[index].selectedItem && updatedVendas[index].selectedItem.id) {
             const selectedItem = {
                 id: updatedVendas[index].selectedItem.id,
@@ -79,6 +87,13 @@ const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
                 valor: parseFloat(updatedVendas[index].selectedItem.valor || 0),
                 quantidade: updatedVendas[index].selectedItem.quantidade
             };
+
+            const storedItems = JSON.parse(localStorage.getItem('itensVendaAvul')) || {};
+            const itemName = selectedItem.nome;
+
+            storedItems[itemName] = (storedItems[itemName] || 0) + 1;
+            localStorage.setItem('itensVendaAvul', JSON.stringify(storedItems));
+
             updatedVendas[index].items.push(selectedItem);
             updatedVendas[index].selectedItem = '';
             updateVendas(updatedVendas);
@@ -87,21 +102,46 @@ const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
 
     const handleRemoveItem = (vendaIndex, itemIndex) => {
         const updatedVendas = [...vendas];
+        const storedItems = JSON.parse(localStorage.getItem('itensVendaAvul')) || {};
+        const itemName = updatedVendas[vendaIndex].items[itemIndex].nome;
+
+        if (storedItems[itemName]) {
+            storedItems[itemName] -= 1;
+            if (storedItems[itemName] <= 0) {
+                delete storedItems[itemName];
+            }
+        }
+        localStorage.setItem('itensVendaAvul', JSON.stringify(storedItems));
+
         updatedVendas[vendaIndex].items.splice(itemIndex, 1);
         updateVendas(updatedVendas);
     };
 
     const handleClosePedido = (index) => {
         const updatedVendas = [...vendas];
-        if (updatedVendas[index].isClosed) {
-            updatedVendas[index].isClosed = false;
-            updatedVendas[index].items = [];
+        const venda = updatedVendas[index];
+
+        if (venda.isClosed) {
+            venda.isClosed = false;
+            venda.items = [];
             updateVendas(updatedVendas);
         } else {
-            const valorTotal = updatedVendas[index].items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
+            const valorTotal = venda.items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
             setValorTotalVendaAtual(valorTotal);
             setVendaIndexForPayment(index);
             setShowPaymentModal(true);
+
+            venda.items.forEach(item => {
+                setQuantidadeLocal(prev => {
+                    const newQuantities = {
+                        ...prev,
+                        [item.nome]: (prev[item.nome] || 0) + 1
+                    };
+                    // Armazena as quantidades no localStorage
+                    localStorage.setItem('itensVenda', JSON.stringify(newQuantities));
+                    return newQuantities;
+                });
+            });
         }
     };
 
@@ -116,151 +156,79 @@ const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
         const valorFinal = valorComDesconto || valorTotalVendaAtual;
 
         if (totalPagamento !== valorFinal) {
-            toast.error('O valor total do pagamento deve ser igual ao valor final', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "light",
-            });
+            showToast('O valor total do pagamento deve ser igual ao valor final', 'error');
             return;
         }
 
         if (!Object.values(paymentMethods).some(method => method === true)) {
-            toast.error('Por favor, selecione pelo menos uma forma de pagamento', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "light",
-            });
+            showToast('Por favor, selecione pelo menos uma forma de pagamento', 'error');
             return;
         }
 
         const venda = vendas[vendaIndexForPayment];
         const itemsToUpdate = venda.items;
-        const valorTotalVenda = itemsToUpdate.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
 
+        // Contabiliza a quantidade total de cada item
         const itemCountMap = itemsToUpdate.reduce((acc, item) => {
             acc[item.nome] = (acc[item.nome] || 0) + 1;
             return acc;
         }, {});
 
-        let podeFechar = true;
+        try {
+            // Finaliza pedido
+            const dataJogo = `${localStorage.getItem('dataJogo')} ${localStorage.getItem('horaJogo')}:00`;
+            await axios.post('/.netlify/functions/api-pedidos', {
+                nomeJogador: venda.nome,
+                items: venda.items,
+                formaPagamento: Object.keys(paymentMethods).find(method => paymentMethods[method]),
+                valorTotal: valorFinal,
+                dataJogo,
+            });
 
-        const promises = Object.keys(itemCountMap).map(async (nome) => {
-            const quantidadeParaSubtrair = itemCountMap[nome];
-            try {
-                const selectedItem = estoque.find(item => item.nome === nome);
-                
-                if (!selectedItem) {
-                    throw new Error(`Item ${nome} não encontrado no estoque`);
-                }
+            // Atualiza estado e localStorage
+            const updatedVendas = [...vendas];
+            updatedVendas[vendaIndexForPayment].isClosed = true;
+            updateVendas(updatedVendas);
+            setShowPaymentModal(false);
 
-                const quantidadeAtual = selectedItem.quantidade;
+            const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
+            const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
+            const valorPorForma = valorFinal / formasSelecionadas.length;
 
-                if (quantidadeAtual === undefined) {
-                    throw new Error(`Quantidade não encontrada para o item ${nome}`);
-                }
-
-                if (isNaN(quantidadeAtual) || quantidadeAtual < quantidadeParaSubtrair) {
-                    toast.error(`Quantidade insuficiente no estoque para o item ${nome}`, {
-                        position: "top-right",
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                        theme: "light",
-                    });
-                    podeFechar = false;
-                    return; // Retorna para não continuar com a atualização
-                }
-
-                const novaQuantidade = quantidadeAtual - quantidadeParaSubtrair;
-                await axios.put(`/.netlify/functions/api-estoque/${nome}`, { quantidade: novaQuantidade });
-                console.log(`Estoque atualizado para o item ${nome} com nova quantidade ${novaQuantidade}`);
-            } catch (error) {
-                console.error('Erro ao obter quantidade atual do estoque:', error);
-                toast.error('Erro ao verificar estoque', {
-                    position: "top-right",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    theme: "light",
+            formasSelecionadas.forEach(forma => {
+                pagamentosAnteriores.push({
+                    valorTotal: valorPorForma,
+                    formaPagamento: forma,
                 });
-            }
-        });
+            });
 
-        await Promise.all(promises); // Aguarda todas as promessas serem resolvidas
+            localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
+            showToast('Pedido finalizado com sucesso!', 'success');
 
-        if (podeFechar) {
-            const dataJogo = localStorage.getItem('dataJogo');
-            const horaJogo = localStorage.getItem('horaJogo');
-            const dataHoraJogo = `${dataJogo} ${horaJogo}:00`;
-
-            try {
-                await axios.post('/.netlify/functions/api-pedidos', {
-                    nomeJogador: venda.nome,
-                    items: venda.items,
-                    formaPagamento: Object.keys(paymentMethods).find(method => paymentMethods[method]),
-                    valorTotal: valorTotalVenda,
-                    dataJogo: dataHoraJogo,
-                });
-                toast.dismiss();
-                toast.success('Pedido finalizado com sucesso!', {
-                    position: "top-right",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    theme: "light",
-                });
-
-                const updatedVendas = [...vendas];
-                updatedVendas[vendaIndexForPayment].isClosed = true;
-                updateVendas(updatedVendas);
-                setShowPaymentModal(false);
-
-                const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
-                const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
-
-                const valorPorForma = valorTotalVenda / formasSelecionadas.length;
-
-                formasSelecionadas.forEach(forma => {
-                    pagamentosAnteriores.push({
-                        valorTotal: valorPorForma,
-                        formasPagamento: forma,
-                    });
-                });
-
-                localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
-            } catch (error) {
-                console.error('Erro ao cadastrar pedido:', error);
-                toast.error('Erro ao finalizar pedido', {
-                    position: "top-right",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    theme: "light",
-                });
-            }
+        } catch (error) {
+            console.error(error.message);
+            showToast(error.message || 'Erro ao processar pedido', 'error');
         }
+    };
+
+    // Função para centralizar mensagens toast
+    const showToast = (message, type = 'info') => {
+        const options = {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+        };
+        type === 'success' ? toast.success(message, options)
+            : type === 'error' ? toast.error(message, options)
+            : toast.info(message, options);
     };
 
     return (
         <div className="flex flex-wrap gap-4">
-
             {vendas.map((venda, index) => {
                 const valorTotalVenda = venda.items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
                 return (
@@ -426,7 +394,13 @@ const VendaAvul = ({ vendas, setVendas, handleAddVendaAvulsa }) => {
                         <div className="flex justify-between mt-4">
                             <button
                                 className="bg-gray-500 hover:bg-black text-white py-2 px-4 rounded-lg"
-                                onClick={() => setShowPaymentModal(false)}
+                                onClick={() => {
+                                    setShowPaymentModal(false);
+                                    setPaymentValues({ dinheiro: 0, credito: 0, debito: 0, pix: 0 });
+                                    setPaymentMethods({ dinheiro: false, credito: false, debito: false, pix: false });
+                                    setDescontoSelecionado('');
+                                    setValorComDesconto(0);
+                                }}
                             >
                                 Cancelar
                             </button>
