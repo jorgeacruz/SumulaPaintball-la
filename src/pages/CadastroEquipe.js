@@ -4,6 +4,7 @@ import { FaPlus, FaTrashAlt, FaEdit } from "react-icons/fa";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 import { useNavigate } from 'react-router-dom';
+import { InputMask } from '@react-input/mask';
 
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -166,12 +167,14 @@ export default function CadEquipe() {
           onChange={(e) => setEmail(e.target.value)}
           className="text-center rounded-sm p-2"
         />
-        <input 
+        <InputMask
           type="text" 
           placeholder="Telefone Jogador" 
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
           className="text-center rounded-sm p-2"
+          mask="(__) _ ____-____"
+          replacement={{ _: /\d/ }} 
         />
 
         <button 
