@@ -8,7 +8,6 @@ import 'react-toastify/dist/ReactToastify.css'; // Estilos do toastify
 function CadJog() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [cpf, setCpf] = useState('');
   const [telefone, setTelefone] = useState('');
   const [senha, setSenha] = useState('');
   const navigate = useNavigate();
@@ -20,7 +19,7 @@ function CadJog() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, email, cpf, telefone, senha })
+        body: JSON.stringify({ username, email, telefone, senha })
       });
 
       if (!response.ok) {
@@ -91,14 +90,7 @@ function CadJog() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <input
-            id="cpf"
-            type='text'
-            className='border border-white p-1 rounded-sm text-center mt-2 w-[250px]'
-            placeholder='Digite seu CPF'
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-          />
+          
           <input
             id="telefone"
             type='text'
@@ -117,7 +109,7 @@ function CadJog() {
           />
           <button
             id="bt-log"
-            className='bg-primary p-1 rounded-sm text-center m-2 w-[250px]'
+            className='bg-primary p-1 rounded-sm text-center m-2 w-[250px] hover:scale-110 duration-300'
             onClick={handleCadastro}
           >
             Fazer Cadastro
