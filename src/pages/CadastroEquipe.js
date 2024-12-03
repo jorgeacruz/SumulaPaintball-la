@@ -11,6 +11,12 @@ const supabase = createClient(
 );
 
 export default function CadEquipe() {
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth'); 
+    navigate('/'); 
+  };
+
   const [nomeEquipe, setNomeEquipe] = useState('');
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -211,6 +217,12 @@ export default function CadEquipe() {
         className="mt-4 rounded-sm bg-green-600 text-white px-4 py-2 hover:bg-green-700 duration-300"
       >
         Finalizar Cadastro
+      </button>
+      <button 
+        onClick={handleLogout}
+        className="mt-4 rounded-sm bg-red-600 text-white px-4 py-2 hover:bg-green-700 duration-300"
+      >
+        Sair da Conta
       </button>
     </section>
   );
