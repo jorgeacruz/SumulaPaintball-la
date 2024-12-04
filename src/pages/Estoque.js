@@ -374,8 +374,13 @@ export default function Estoque() {
             <div className="w-full h-auto bg-gray-400 rounded-sm flex flex-col p-5 items-center justify-center mb-5">
               <h2 className="text-black font-bold mb-5">Adicionar/Remover Itens</h2>
               <input id="NomeProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Nome do produto" />
-              <input id="valorProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Valor Unidade" />
+              <input id="custoProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Valor de custo" />
+              <input id="valorProduto" type="text" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Valor de venda" />
               <input id="QtdProduto" type="number" className="w-full md:w-1/2 p-2 m-2 rounded-md text-center" placeholder="Quantidade" />
+              <select id='tipoItem' className="w-full h-10 md:w-1/2 p-2 m-2 rounded-md text-center">
+                <option>Venda</option>
+                <option>Aluguel</option>
+              </select>
               <div className="flex space-x-4 mt-3">
                 <button id="AddEstoque" className="bg-primary hover:bg-green-500 duration-200 p-2 rounded-md" onClick={addEstoque}>
                   Adicionar
@@ -482,7 +487,8 @@ export default function Estoque() {
                 <div className="w-full flex justify-between px-3">
                   <p className="text-black font-semibold w-1/4 text-center">Item</p>
                   <p className="text-black font-semibold w-1/4 text-center">Quantidade</p>
-                  <p className="text-black font-semibold w-1/4 text-center">Valor Unidade</p>
+                  <p className="text-black font-semibold w-1/4 text-center">Valor Custo</p>
+                  <p className="text-black font-semibold w-1/4 text-center">Valor Venda</p>
                   <p className="text-black font-semibold w-1/4 text-center">Valor Total</p>
                 </div>
                 {estoque.map((item, index) => (
