@@ -9,9 +9,6 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ClipLoader } from "react-spinners";
 
-// Adicionar configuração base do axios
-
-// Primeiro, adicione este CSS no seu arquivo de estilos ou inline
 const spinnerStyle = `
   @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -88,7 +85,7 @@ export default function Estoque() {
           draggable: true,
           theme: "light",
         });
-        fetchDescontos(); // Verifique se esta função está correta e atualiza a lista
+        fetchDescontos();
       })
       .catch(error => {
         console.error('Erro ao excluir desconto:', error);
@@ -158,8 +155,10 @@ export default function Estoque() {
     const nomeProduto = document.getElementById('NomeProduto').value;
     const valorProduto = document.getElementById('valorProduto').value;
     const qtdProduto = document.getElementById('QtdProduto').value;
+    const custoProduto = document.getElementById('custoProduto').value;
+    const tipoItem = document.getElementById('tipoItem').value;
     
-    if (!nomeProduto || !valorProduto || !qtdProduto) {
+    if (!nomeProduto || !valorProduto || !qtdProduto || !custoProduto) {
       toast.error('Preencha todos os campos do produto', {
         position: "top-right",
         autoClose: 3000,
@@ -178,7 +177,9 @@ export default function Estoque() {
       await axios.post('/.netlify/functions/api-estoque', {
         item: nomeProduto,
         valor: parseFloat(valorProduto),
-        quantidade: parseInt(qtdProduto)
+        custo: parseInt(custoProduto),
+        quantidade: parseInt(qtdProduto),
+        tipo: tipoItem
       });
       
       toast.success('Produto adicionado com sucesso!', {
@@ -196,6 +197,7 @@ export default function Estoque() {
       document.getElementById('NomeProduto').value = '';
       document.getElementById('valorProduto').value = '';
       document.getElementById('QtdProduto').value = '';
+      document.getElementById('custoProduto').value = '';
     } catch (error) {
       toast.error('Erro ao adicionar produto', {
         position: "top-right",
@@ -486,6 +488,7 @@ export default function Estoque() {
               <div className="w-full flex flex-col">
                 <div className="w-full flex justify-between px-3">
                   <p className="text-black font-semibold w-1/4 text-center">Item</p>
+                  <p className="text-black font-semibold w-1/4 text-center">Tipo</p>
                   <p className="text-black font-semibold w-1/4 text-center">Quantidade</p>
                   <p className="text-black font-semibold w-1/4 text-center">Valor Custo</p>
                   <p className="text-black font-semibold w-1/4 text-center">Valor Venda</p>
@@ -495,6 +498,9 @@ export default function Estoque() {
                   <div key={index} className="w-full flex justify-between items-center px-3 py-2 border-t border-gray-300">
                     <div className="w-1/4 text-center">
                       <p className="text-black font-semibold">{item.nome}</p>
+                    </div>
+                    <div className="w-1/4 text-center">
+                      <p className="text-black font-semibold">{item.tipo}</p>
                     </div>
                     <div className="w-1/4 text-center">
                       <div className="flex items-center justify-center">

@@ -13,15 +13,6 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
     debito: 0,
     pix: 0
   });
-  const [paymentMethods, setPaymentMethods] = useState({
-    dinheiro: false,
-    credito: false,
-    debito: false,
-    pix: false
-  });
-  const [descontos, setDescontos] = useState({});
-  const [descontoSelecionado, setDescontoSelecionado] = useState('');
-  const [valorComDesconto, setValorComDesconto] = useState(0);
   const [estoque, setEstoque] = useState([]);
 
   useEffect(() => {
@@ -40,17 +31,6 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
     localStorage.setItem('totalAvulso', valorTotalGeral);
   }, [valorTotalGeral]);
 
-  useEffect(() => {
-    const fetchDescontos = async () => {
-      try {
-        const response = await axios.get('/.netlify/functions/api-descontos');
-        setDescontos(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar descontos:', error);
-      }
-    };
-    fetchDescontos();
-  }, []);
 
   const handleRemoveDespesa = (index) => {
       const updatedDespesas = despesas.filter((_, i) => i !== index);
@@ -144,39 +124,9 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
 
     const itemsToUpdate = despesa.items;
     const valorTotalDespesa = itemsToUpdate.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
-    const valorFinal = valorComDesconto || valorTotalDespesa;
+    const valorFinal = valorTotalDespesa;
     const totalPagamento = Object.values(paymentValues).reduce((a, b) => a + (parseFloat(b) || 0), 0);
 
-    if (totalPagamento !== valorFinal) {
-        toast.error('O valor total do pagamento deve ser igual ao valor final', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            theme: "light",
-        });
-        return;
-    }
-
-    if (!Object.values(paymentMethods).some(method => method === true)) {
-        toast.error('Por favor, selecione pelo menos uma forma de pagamento', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            theme: "light",
-        });
-        return;
-    }
-
-    const itemCountMap = itemsToUpdate.reduce((acc, item) => {
-        acc[item.nome] = (acc[item.nome] || 0) + 1;
-        return acc;
-    }, {});
 
     try {
         // Finaliza pedido
@@ -195,18 +145,18 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
         setDespesas(updatedDespesas);
         setShowPaymentModal(false);
 
-        const pagamentosAnteriores = JSON.parse(localStorage.getItem('pagamentos')) || [];
-        const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
-        const valorPorForma = valorFinal / formasSelecionadas.length;
+        const despesasAnteriores = JSON.parse(localStorage.getItem('despesas')) || [];
+            const formasSelecionadas = Object.keys(paymentMethods).filter(method => paymentMethods[method]);
 
-        formasSelecionadas.forEach(forma => {
-            pagamentosAnteriores.push({
-                valorTotal: valorPorForma,
-                formaPagamento: forma,
+            formasSelecionadas.forEach(forma => {
+                const valorForma = paymentValues[forma]; 
+                despesasAnteriores.push({
+                    valorTotal: valorForma, 
+                    formaPagamento: forma,
+                });
             });
-        });
 
-        localStorage.setItem('pagamentos', JSON.stringify(pagamentosAnteriores));
+        localStorage.setItem('despesas', JSON.stringify(despesasAnteriores));
         toast.success('Pedido finalizado com sucesso!', {
             position: "top-right",
             autoClose: 3000,
@@ -231,7 +181,15 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
     }
 };
 
-  
+
+const handleAddDespesaValor = (index, event) => {
+    const updatedDespesas = [...despesas];
+    updatedDespesas[index].valor = parseFloat(event.target.value) || 0; // Corrigido para armazenar o valor
+    updateDespesas(updatedDespesas);
+};
+
+
+
   return (
     <div className="flex flex-wrap gap-4">
 
@@ -300,7 +258,48 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
                   </button>
                 </div>
               </div>
-
+              
+              <input
+                type="text"
+                className="text-center w-44 rounded-sm px-2 py-1"
+                placeholder="Nome do Item"
+                value={despesa.novoItemNome || ''}
+                onChange={(e) => {
+                  const updatedDespesas = [...despesas];
+                  updatedDespesas[index].novoItemNome = e.target.value;
+                  setDespesas(updatedDespesas);
+                }}
+                disabled={despesa.isClosed}
+              />
+              <input
+                type="text"
+                className="text-center w-44 rounded-sm px-2 py-1"
+                placeholder="Valor do Item"
+                value={despesa.novoItemValor || ''}
+                onChange={(e) => {
+                  const updatedDespesas = [...despesas];
+                  updatedDespesas[index].novoItemValor = parseFloat(e.target.value) || 0;
+                  setDespesas(updatedDespesas);
+                }}
+                disabled={despesa.isClosed}
+              />
+              <button
+                className="bg-black hover:bg-primary py-1 px-2 rounded text-white"
+                onClick={() => {
+                  const updatedDespesas = [...despesas];
+                  const novoItem = {
+                    nome: updatedDespesas[index].novoItemNome,
+                    valor: updatedDespesas[index].novoItemValor,
+                  };
+                  updatedDespesas[index].items.push(novoItem);
+                  updatedDespesas[index].novoItemNome = '';
+                  updatedDespesas[index].novoItemValor = 0;
+                  setDespesas(updatedDespesas);
+                }}
+                disabled={despesa.isClosed}
+              >
+                Adicionar Item
+              </button>
               {despesa.items.map((item, itemIndex) => (
                 <div key={itemIndex} className="p-2 flex flex-col justify-center items-center md:flex-row md:justify-between">
                   <div className="inline-flex">
@@ -337,86 +336,11 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
       {showPaymentModal && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg w-[500px]">
-            <h2 className="text-2xl font-semibold mb-4">Formas de Pagamento</h2>
-            
-            <div className="mb-4">
-              <p className="font-bold">
-                Valor Total: R$ {despesas[despesaIndexForPayment] && despesas[despesaIndexForPayment].items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0).toFixed(2)}
-              </p>
-            </div>
-
-            <div className="mb-4">
-              <select
-                value={descontoSelecionado}
-                onChange={(e) => {
-                  setDescontoSelecionado(e.target.value);
-                  const valorTotal = despesas[despesaIndexForPayment] && 
-                    despesas[despesaIndexForPayment].items.reduce((sum, item) => sum + (parseFloat(item.valor) || 0), 0);
-                  const desconto = descontos[e.target.value] || 0;
-                  setValorComDesconto(valorTotal * (1 - desconto / 100));
-                }}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="">Selecione o desconto</option>
-                {Object.entries(descontos).map(([tipo, percentual]) => (
-                  <option key={tipo} value={tipo}>
-                    {tipo} - {percentual}%
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 mb-4">
-              {['dinheiro', 'credito', 'debito', 'pix'].map((method) => (
-                <div key={method} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={paymentMethods[method]}
-                    onChange={(e) => {
-                      setPaymentMethods({
-                        ...paymentMethods,
-                        [method]: e.target.checked
-                      });
-                    }}
-                    className="w-4 h-4"
-                  />
-                  <input
-                    type="number"
-                    value={paymentValues[method]}
-                    onChange={(e) => {
-                      setPaymentValues({
-                        ...paymentValues,
-                        [method]: parseFloat(e.target.value) || 0
-                      });
-                    }}
-                    disabled={!paymentMethods[method]}
-                    placeholder={`Valor ${method}`}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                  />
-                  <label className="capitalize">{method}</label>
-                </div>
-              ))}
-            </div>
-
-            <div className="mb-4">
-              <p className="font-bold">
-                Valor com Desconto: R$ {valorComDesconto.toFixed(2)}
-              </p>
-              <p className="font-bold">
-                Valor Total Inserido: R$ {Object.values(paymentValues).reduce((a, b) => a + (parseFloat(b) || 0), 0).toFixed(2)}
-              </p>
-            </div>
-
+            <h2 className="text-2xl font-semibold mb-4">Deseja realmente fechar o card?</h2>
             <div className="flex justify-between mt-4">
               <button
                 className="bg-gray-500 hover:bg-black text-white py-2 px-4 rounded-lg"
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setPaymentValues({dinheiro: 0, credito: 0, debito: 0, pix: 0});
-                  setPaymentMethods({dinheiro: false, credito: false, debito: false, pix: false});
-                  setDescontoSelecionado('');
-                  setValorComDesconto(0);
-                }}
+                onClick={() => setShowPaymentModal(false)}
               >
                 Cancelar
               </button>
@@ -424,7 +348,7 @@ export default function CardDespesas({ despesas, setDespesas, handleAddDespesa})
                 className="bg-black hover:bg-secondary py-2 px-4 rounded-lg text-white"
                 onClick={handleConfirmPayment}
               >
-                Confirmar Pagamento
+                Confirmar
               </button>
             </div>
           </div>
