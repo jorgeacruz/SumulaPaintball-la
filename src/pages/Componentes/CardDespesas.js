@@ -261,7 +261,7 @@ const handleAddDespesaValor = (index, event) => {
               
               <input
                 type="text"
-                className="text-center w-44 rounded-sm px-2 py-1"
+                className="w-full border border-slate-400 rounded px-2 p-1 text-center"
                 placeholder="Nome do Item"
                 value={despesa.novoItemNome || ''}
                 onChange={(e) => {
@@ -273,7 +273,7 @@ const handleAddDespesaValor = (index, event) => {
               />
               <input
                 type="text"
-                className="text-center w-44 rounded-sm px-2 py-1"
+                className="w-full border border-slate-400 rounded px-2 p-1 text-center"
                 placeholder="Valor do Item"
                 value={despesa.novoItemValor || ''}
                 onChange={(e) => {
@@ -284,7 +284,7 @@ const handleAddDespesaValor = (index, event) => {
                 disabled={despesa.isClosed}
               />
               <button
-                className="bg-black hover:bg-primary py-1 px-2 rounded text-white"
+                className="w-full bg-black hover:bg-primary py-1 px-2 rounded text-white"
                 onClick={() => {
                   const updatedDespesas = [...despesas];
                   const novoItem = {
