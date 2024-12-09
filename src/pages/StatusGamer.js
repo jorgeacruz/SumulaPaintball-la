@@ -4,11 +4,11 @@ import CardJog from './Componentes/Cardjog';
 import CardDespesas from './Componentes/CardDespesas';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus } from "react-icons/fa6";
-import { IoMdClose } from "react-icons/io";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ClipLoader } from "react-spinners";
 import axios from 'axios';
+import { IoMdClose } from "react-icons/io";
 
 export default function StatusGame() {
     const [jogo, setJogo] = useState({});
@@ -157,7 +157,6 @@ export default function StatusGame() {
                 const quantidadeParaSubtrair = storedItems[itemName];
                 const response = await axios.get(`/.netlify/functions/api-estoque/${itemName}`);
                 const selectedItems = response.data;
-                console.log(storedItems);
                 if (selectedItems.length === 0) {
                     throw new Error(`Item ${itemName} não encontrado no estoque`);
                 }
@@ -232,12 +231,17 @@ export default function StatusGame() {
     };
 
     const calcularTotalDespesas = () => {
-        return despesas.reduce((total, despesa) => {
+        const totalDespesas = despesas.reduce((total, despesa) => {
             if (!despesa || !despesa.items) return total;
             return total + despesa.items.reduce((subtotal, item) => {
                 return subtotal + (Number(item && item.valor) || 0);
             }, 0);
         }, 0);
+        
+        // Armazena o total de despesas no localStorage
+        localStorage.setItem('totdespesas', totalDespesas.toFixed(2)); // Armazena com duas casas decimais
+
+        return totalDespesas;
     };
 
     const calcularTotalJogadores = () => {
@@ -335,13 +339,13 @@ export default function StatusGame() {
                         </button>
                         <button
                             onClick={handleAddVendaAvulsa}
-                            className="bg-blue-600 hover:bg-white duration-300 m-2 w-16 h-16 rounded-full flex justify-center items-center"
+                            className="bg-primary hover:bg-white duration-300 m-2 w-16 h-16 rounded-full flex justify-center items-center"
                         >
                             <FaPlus size={30} />
                         </button>
                         <button 
                             onClick={handleAddDespesa}
-                            className="bg-red-600 hover:bg-white duration-300 m-2 w-16 h-16 rounded-full flex justify-center items-center"
+                            className="bg-primary hover:bg-white duration-300 m-2 w-16 h-16 rounded-full flex justify-center items-center"
                         >
                             <FaPlus size={30} />
                         </button>

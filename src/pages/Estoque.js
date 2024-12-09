@@ -273,6 +273,33 @@ export default function Estoque() {
         });
       });
   };
+  const updateCusto = (nome, novoCusto) => {
+    axios.put(`/.netlify/functions/api-estoque/${nome}`, { custo: novoCusto })
+      .then(response => {
+        toast.success('Quantidade atualizada com sucesso!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
+        fetchEstoque();
+        setInputs(prev => ({ ...prev, [nome]: { ...prev[nome], custo: '' } }));
+      })
+      .catch(error => {
+        toast.error('Erro ao atualizar quantidade', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
+      });
+  };
 
   const updateValor = (nome, novoValor) => {
     axios.put(`/.netlify/functions/api-estoque/${nome}`, { valor: novoValor })
@@ -316,8 +343,9 @@ export default function Estoque() {
     setEditMode(prev => ({ ...prev, [nome]: !prev[nome] }));
   };
 
-  const totalQuantidade = estoque.reduce((total, item) => total + item.quantidade, 0);
-  const totalValor = estoque.reduce((total, item) => total + item.valor * item.quantidade, 0);
+  const totalQuantidade = estoque.filter(item => item.tipo === 'Venda').reduce((total, item) => total + item.quantidade, 0);
+  const totalValor = estoque.filter(item => item.tipo === 'Venda').reduce((total, item) => total + item.valor * item.quantidade, 0);
+  const totalValorCusto = estoque.filter(item => item.tipo === 'Venda').reduce((total, item) => total + item.custo * item.quantidade, 0);
 
   
   const formatEstoqueToText = () => {
@@ -484,9 +512,10 @@ export default function Estoque() {
 
 
             <div className="bg-primary w-full max-w-4xl rounded-sm flex flex-col p-5 items-center justify-center">
-              <h2 className="text-black font-bold mb-5">Estoque Atual</h2>
+              <h2 className="text-black font-bold mb-5">Estoque Atual - Venda</h2>
               <div className="w-full flex flex-col">
                 <div className="w-full flex justify-between px-3">
+                  <p className="text-black font-semibold w-1/6 text-center">Editar</p>
                   <p className="text-black font-semibold w-1/4 text-center">Item</p>
                   <p className="text-black font-semibold w-1/4 text-center">Tipo</p>
                   <p className="text-black font-semibold w-1/4 text-center">Quantidade</p>
@@ -494,8 +523,16 @@ export default function Estoque() {
                   <p className="text-black font-semibold w-1/4 text-center">Valor Venda</p>
                   <p className="text-black font-semibold w-1/4 text-center">Valor Total</p>
                 </div>
-                {estoque.map((item, index) => (
+                {estoque.filter(item => item.tipo === 'Venda').map((item, index) => (
                   <div key={index} className="w-full flex justify-between items-center px-3 py-2 border-t border-gray-300">
+                    <div className="w-1/6 text-center">
+                      <button 
+                        className="text-blue-500 hover:text-blue-700"
+                        onClick={() => toggleEditMode(item.nome)}
+                      >
+                        {editMode[item.nome] ? 'Cancelar' : 'Editar'}
+                      </button>
+                    </div>
                     <div className="w-1/4 text-center">
                       <p className="text-black font-semibold">{item.nome}</p>
                     </div>
@@ -524,6 +561,38 @@ export default function Estoque() {
                     </div>
                     <div className="w-1/4 text-center">
                       <div className="flex items-center justify-between">
+                        <p className="text-black font-semibold w-full">{item.custo}</p>
+                        {editMode[item.nome] && (
+                          <input
+                            type="number"
+                            value={inputs[item.nome]?.custo || ''}
+                            onChange={(e) => handleInputChange(item.nome, 'custo', e.target.value)}
+                            className="w-24 p-1 m-1 rounded-md text-center"
+                            placeholder="Novo custo"
+                            onBlur={async () => {
+                              if (inputs[item.nome]?.custo) {
+                                try {
+                                  await updateCusto(item.nome, inputs[item.nome].custo);
+                                  toggleEditMode(item.nome); 
+                                } catch (error) {
+                                  toast.error('Erro ao atualizar custo: ' + error.message, {
+                                    position: "top-right",
+                                    autoClose: 3000,
+                                    hideProgressBar: false,
+                                    closeOnClick: true,
+                                    pauseOnHover: true,
+                                    draggable: true,
+                                    theme: "light",
+                                  });
+                                }
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="w-1/4 text-center">
+                      <div className="flex items-center justify-between">
                         <p className="text-black font-semibold w-full">{item.valor}</p>
                         {editMode[item.nome] && (
                           <input
@@ -532,20 +601,26 @@ export default function Estoque() {
                             onChange={(e) => handleInputChange(item.nome, 'valor', e.target.value)}
                             className="w-24 p-1 m-1 rounded-md text-center"
                             placeholder="Novo valor"
-                            onBlur={() => {
+                            onBlur={async () => {
                               if (inputs[item.nome]?.valor) {
-                                updateValor(item.nome, inputs[item.nome].valor);
-                                toggleEditMode(item.nome); 
+                                try {
+                                  await updateValor(item.nome, inputs[item.nome].valor);
+                                  toggleEditMode(item.nome); 
+                                } catch (error) {
+                                  toast.error('Erro ao atualizar valor: ' + error.message, {
+                                    position: "top-right",
+                                    autoClose: 3000,
+                                    hideProgressBar: false,
+                                    closeOnClick: true,
+                                    pauseOnHover: true,
+                                    draggable: true,
+                                    theme: "light",
+                                  });
+                                }
                               }
                             }}
                           />
                         )}
-                        <button 
-                          className="ml-6 text-blue-500 hover:text-blue-700"
-                          onClick={() => toggleEditMode(item.nome)}
-                        >
-                          {editMode[item.nome] ? 'Cancelar' : 'Editar'}
-                        </button>
                       </div>
                     </div>
                     <div className="w-1/4 text-center">
@@ -555,16 +630,85 @@ export default function Estoque() {
                 ))}
               </div>
               <div className="w-full flex justify-between px-3 py-5 mt-5 border-t border-gray-300">
-                <div className="w-1/3 text-center">
-                  <p className="text-black text-lg font-semibold">Qtd Total de itens:</p>
-                  <p className="text-red-500 text-lg font-bold">{totalQuantidade}</p>
-                </div>
-                <div className="w-1/3 text-center">
-                  <p className="text-black text-lg font-semibold">Valor Total:</p>
-                  <p className="text-red-500 text-lg font-bold">R${totalValor.toFixed(2)}</p>
-                </div>
+              <div className="w-1/3 text-center">
+                <p className="text-black text-lg font-semibold">Qtd Total de itens:</p>
+                <p className="text-red-500 text-lg font-bold">{totalQuantidade}</p>
+              </div>
+              <div className="w-1/3 text-center">
+                <p className="text-black text-lg font-semibold">Valor Total de Venda:</p>
+                <p className="text-red-500 text-lg font-bold">R${totalValor.toFixed(2)}</p>
+              </div>
+              <div className="w-1/3 text-center">
+                <p className="text-black text-lg font-semibold">Valor Total de Custo:</p>
+                <p className="text-red-500 text-lg font-bold">R${totalValorCusto.toFixed(2)}</p>
               </div>
             </div>
+            
+            </div>
+            
+            <div className="bg-primary w-full max-w-4xl rounded-sm flex flex-col p-5 items-center justify-center">
+              <h2 className="text-black font-bold mb-5">Estoque Atual - Aluguel</h2>
+              <div className="w-full flex flex-col">
+                <div className="w-full flex justify-between px-3">
+                  <p className="text-black font-semibold w-1/6 text-center">Editar</p>
+                  <p className="text-black font-semibold w-1/4 text-center">Item</p>
+                  <p className="text-black font-semibold w-1/4 text-center">Tipo</p>
+                  <p className="text-black font-semibold w-1/4 text-center">Valor Venda</p>
+                </div>
+                {estoque.filter(item => item.tipo === 'Aluguel').map((item, index) => (
+                  <div key={index} className="w-full flex justify-between items-center px-3 py-2 border-t border-gray-300">
+                    <div className="w-1/6 text-center">
+                      <button 
+                        className="text-blue-500 hover:text-blue-700"
+                        onClick={() => toggleEditMode(item.nome)}
+                      >
+                        {editMode[item.nome] ? 'Cancelar' : 'Editar'}
+                      </button>
+                    </div>
+                    <div className="w-1/4 text-center">
+                      <p className="text-black font-semibold">{item.nome}</p>
+                    </div>
+                    <div className="w-1/4 text-center">
+                      <p className="text-black font-semibold">{item.tipo}</p>
+                    </div>
+                    <div className="w-1/4 text-center">
+                      <div className="flex items-center justify-between">
+                        <p className="text-black font-semibold w-full">{item.valor}</p>
+                        {editMode[item.nome] && (
+                          <input
+                            type="number"
+                            value={inputs[item.nome]?.valor || ''}
+                            onChange={(e) => handleInputChange(item.nome, 'valor', e.target.value)}
+                            className="w-24 p-1 m-1 rounded-md text-center"
+                            placeholder="Novo valor"
+                            onBlur={async () => {
+                              if (inputs[item.nome]?.valor) {
+                                try {
+                                  await updateValor(item.nome, inputs[item.nome].valor);
+                                  toggleEditMode(item.nome); 
+                                } catch (error) {
+                                  toast.error('Erro ao atualizar valor: ' + error.message, {
+                                    position: "top-right",
+                                    autoClose: 3000,
+                                    hideProgressBar: false,
+                                    closeOnClick: true,
+                                    pauseOnHover: true,
+                                    draggable: true,
+                                    theme: "light",
+                                  });
+                                }
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
 
             <div className="w-full h-24 bg-third rounded-md flex justify-center md:justify-end items-center gap-3 px-2 mt-5">
               <button 

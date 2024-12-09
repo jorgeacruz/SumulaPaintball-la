@@ -109,6 +109,8 @@ export default function Financeiro() {
                 <th className="w-full flex justify-start">Dinheiro</th>
                 <th className="w-full flex justify-start">Pix</th>
                 <th className="w-full flex justify-start">Avulso</th>
+                <th className="w-full flex justify-start">Despesas</th>
+                <th className="w-full flex justify-start">Total</th>
                 <th className="w-full flex justify-start">Total Arrecadado</th>
               </tr>
             </thead>
@@ -126,7 +128,9 @@ export default function Financeiro() {
                   <td className="w-full">R${item && item.dinheiro}</td>
                   <td className="w-full">R${item && item.pix}</td>
                   <td className="w-full">R${item && item.avulso}</td>
+                  <td className="w-full">R${item && item.despesas}</td>
                   <td className="w-full">R${item && item.total_arrecadado}</td>
+                  <td className="w-full">R${item && item.valortot}</td>
                 </tr>
               ))}
             </tbody>

@@ -97,7 +97,7 @@ exports.handler = async(event, context) => {
     if (event.httpMethod === 'PUT') {
         try {
             const nome = event.path.split('/').pop();
-            const { quantidade, valor, tipo } = JSON.parse(event.body);
+            const { quantidade, valor, tipo, custo } = JSON.parse(event.body);
 
             // Verifica se o item existe antes de atualizar
             const [itemExists] = await connection.query('SELECT * FROM estoque WHERE nome = ?', [nome]);
@@ -108,14 +108,12 @@ exports.handler = async(event, context) => {
                 };
             }
 
-            if (nome === 'marcador especial' && quantidade !== undefined) {
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify("A quantidade do 'marcador especial' não pode ser alterada.")
-                };
+            // Verifica se o tipo é "Aluguel" e não atualiza a quantidade
+            if (tipo === 'Aluguel') {
+                quantidade = itemExists[0].quantidade; // Mantém a quantidade atual
             }
 
-            if (quantidade === undefined && valor === undefined) {
+            if (quantidade === undefined && valor === undefined && custo === undefined) {
                 return {
                     statusCode: 400,
                     body: JSON.stringify("Nenhum valor para atualizar fornecido")
@@ -125,15 +123,7 @@ exports.handler = async(event, context) => {
             let query = 'UPDATE estoque SET ';
             const values = [];
 
-            if (tipo === 'aluguel' && quantidade !== undefined) {
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify("A quantidade não pode ser alterada para itens do tipo 'aluguel'.")
-                };
-            }
-
             if (quantidade !== undefined) {
-               
                 query += 'quantidade = ? ';
                 values.push(quantidade);
             }
@@ -144,6 +134,13 @@ exports.handler = async(event, context) => {
                 }
                 query += 'valor = ? ';
                 values.push(valor);
+            }
+            if (custo !== undefined) {
+                if (values.length > 0) {
+                    query += ', ';
+                }
+                query += 'custo = ? ';
+                values.push(custo);
             }
 
             if (tipo !== undefined) {

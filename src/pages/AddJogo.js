@@ -43,7 +43,9 @@ function AddJogo() {
       const keysToRemove = [
         'pagamentos', 'totalAvulso', 'dataJogo', 'horaJogo',
         'jogadores', 'vendasAvulsas', 'despesas', 'descontos',
-        'totalArrecadado', 'formasPagamento', 'itensVendaAvul'
+        'totalArrecadado', 'formasPagamento', 'itensVendaAvul', 
+        'totdespesas', 'valortot', 'totalJogadores', 'totalAvulso', 
+        'totalDespesas', 'totalJogadores', 'totalArrecadado', 'formasPagamento'
       ];
       
       // Limpar localStorage de forma mais segura
